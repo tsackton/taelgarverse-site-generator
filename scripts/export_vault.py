@@ -71,7 +71,7 @@ class WikiLinkReplacer:
         if filename:
             if filename in self.path_dict:
                 alias = str(filename) if alias == "" else alias
-                if SLUG:
+                if slugify_files:
                     filename = str(self.path_dict[filename]['file'])
                 else:
                     filename = str(self.path_dict[filename]['orig'])
@@ -81,7 +81,7 @@ class WikiLinkReplacer:
                 parts = filename.split('/')
                 if parts[-1] in self.path_dict:
                     alias = str(parts[-1]) if alias == "" else alias
-                    if SLUG:
+                    if slugify_files:
                         filename = str(self.path_dict[parts[-1]]['file'])
                     else:
                         filename = str(self.path_dict[parts[-1]]['orig'])
@@ -233,7 +233,7 @@ def strip_date_content(s, input_date_str):
     # Replace matching sections
     return re.sub(pattern, replace_func, s, flags=re.DOTALL)
 
-def build_md_list(path):
+def build_md_list(path, keep_only_rooted=False):
     """
     Given a path, makes a dictionary of all the markdown files in the path.
     The dictionary has the original file name as the key, and a dict with two keys as the value:
@@ -269,8 +269,18 @@ def build_md_list(path):
             # slugified full path
             slug = Path(*[slugify(part) for part in relative_path_parents]) / slug_file_name
             orig = file.relative_to(path).parent / file.name
+
+            # get text and frontmatter
+            add_file = True
+            text = ""
+            fm = {}
+            if process:
+                fm, text = parse_markdown_file(file)
+                add_file = True if not keep_only_rooted else isinstance(fm, dict) and fm.get("rooted", False)
             
-            md_files[orig_file_name] = { 'file': slug, 'orig': orig, 'process': process }
+            if add_file:
+                md_files[orig_file_name] = { 'file': slug, 'orig': orig, 'process': process, 'text': text, 'fm': fm }
+
     return md_files
 
 # Custom dumper for handling empty values
@@ -289,61 +299,65 @@ CustomDumper.add_representer(type(None), CustomDumper.represent_none)
 configfile = "website.json"
 with open((configfile), 'r', 2048, "utf-8") as f:
     data = json.load(f)
-    SOURCE = Path(data["source"])
-    OUTPUT = Path(data["build"])
-    DATE = data.get("export_date", None)
-    CAMPAIGN = data.get("campaign", None)
-    SLUG = data.get("slugify", True)
-    CLEAN = data.get("clean_build", False)
-    HOME = data.get("home_source", None)
+    source_dir = Path(data["source"])
+    output_dir = Path(data["build"])
+    target_date = data.get("export_date", None)
+    target_campaign = data.get("campaign", None)
+    slugify_files = data.get("slugify", True)
+    clean_build_dir = data.get("clean_build", False)
+    home_file = data.get("home_source", None)
+    keep_only_rooted = data.get("keep_only_rooted", False)
 
 ## SOURCE is input files
 ## OUTPUT is output directory
 
-print("Source: " + str(SOURCE))
-print("Output: " + str(OUTPUT))
+print("Source: " + str(source_dir))
+print("Output: " + str(output_dir))
 
-if CLEAN:
-    shutil.rmtree(OUTPUT)
+if clean_build_dir:
+    print("Cleaning output directory " + str(output_dir) + " before building")
+    shutil.rmtree(output_dir)
 
-OUTPUT.mkdir(parents=True, exist_ok=True)
+output_dir.mkdir(parents=True, exist_ok=True)
 
-if HOME:
-    shutil.copy(HOME, OUTPUT / "index.md")
+if home_file:
+    print("Copying " + home_file + " to " + str(source_dir) + "/index.md")
+    shutil.copy(home_file, source_dir / "index.md")
 
-SOURCE_FILES = build_md_list(SOURCE)
+source_files = build_md_list(source_dir, keep_only_rooted)
 
-for file_name in SOURCE_FILES:
+for file_name in source_files:
     # Construct new path
-    if SLUG:
-        new_file_path = OUTPUT / SOURCE_FILES[file_name]["file"]
+    if slugify_files:
+        new_file_path = output_dir / source_files[file_name]["file"]
     else:
-        new_file_path = OUTPUT / SOURCE_FILES[file_name]["orig"]
+        new_file_path = output_dir / source_files[file_name]["orig"]
     
     # Create directories if they don't exist
     new_file_path.parent.mkdir(parents=True, exist_ok=True)
     
     # Copy files that won't be processed
-    if not SOURCE_FILES[file_name]['process']:
+    if not source_files[file_name]['process']:
         # just straight copy
-        shutil.copy(SOURCE / SOURCE_FILES[file_name]["orig"], new_file_path)
+        shutil.copy(source_dir / source_files[file_name]["orig"], new_file_path)
         continue
 
     # Open the input file
-    fm, text = parse_markdown_file(SOURCE / SOURCE_FILES[file_name]['orig'])
+    fm = source_files[file_name]['fm']
+    text = source_files[file_name]['text']
 
     # Get the mkdocs page path
-    if SLUG:
-        page_path = SOURCE_FILES[file_name]['file']
+    if slugify_files:
+        page_path = source_files[file_name]['file']
     else:
-        page_path = SOURCE_FILES[file_name]['orig']
+        page_path = source_files[file_name]['orig']
     new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
 
     # clean up markdown text
-    new_text = strip_date_content(text, DATE) if DATE else text
-    new_text = strip_campaign_content(text, CAMPAIGN) if CAMPAIGN else new_text
-    new_text = strip_comments(text)
-    new_text = re.sub(WIKILINK_RE, WikiLinkReplacer(OUTPUT, page_path, SOURCE_FILES, SLUG), new_text)
+    new_text = strip_date_content(text, target_date) if target_date else text
+    new_text = strip_campaign_content(text, target_campaign) if target_campaign else new_text
+    new_text = strip_comments(text) if data.get("strip_comments") else new_text
+    new_text = re.sub(WIKILINK_RE, WikiLinkReplacer(output_dir, page_path, source_files, slugify_files), new_text) if data.get("fix_links") else new_text
     output = "---\n" + new_frontmatter + "---\n" + new_text
 
     # Write the updated lines to a new file

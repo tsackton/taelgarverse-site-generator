@@ -7,5 +7,6 @@
     "strip_comments": true,
     "slugify": true,
     "clean_build": true,
-    "home_source": "templates/home.md"
+    "home_source": "templates/home.md",
+    "keep_only_rooted": true
 }
