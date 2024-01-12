@@ -85,10 +85,10 @@ class WikiLinkReplacer:
                         filename = str(self.path_dict[parts[-1]]['file'])
                     else:
                         filename = str(self.path_dict[parts[-1]]['orig'])
-            if '/' in filename:
-                if 'http' in filename: # http or https
-                    rel_link_url = filename
-                else:
+            if "http://" in filename or "https://" in filename:
+                rel_link_url = filename
+            else:
+                if os.path.sep in filename:
                     rel_file = filename
                     if not '.' in filename:   # don't have extension type
                         rel_file = filename + ".md"
@@ -100,19 +100,19 @@ class WikiLinkReplacer:
                             os.path.relpath(abs_link_url, abs_linker_url), os.path.basename(rel_file))
                     if title:
                         rel_link_url = rel_link_url + '#' + format_title
-            else:
-                for root, dirs, files in os.walk(self.base_docs_url, followlinks=True):
-                    for name in files:
-                        # If we have a match, create the relative path from linker to the link
-                        if self.simplify(name) == self.simplify(filename):
-                            # Absolute path to the file we want to link to
-                            abs_link_url = os.path.dirname(os.path.join(
-                                root, name))
-                            # Constructing relative path from the linker to the link
-                            rel_link_url = os.path.join(
-                                    os.path.relpath(abs_link_url, abs_linker_url), name)
-                            if title:
-                                rel_link_url = rel_link_url + '#' + format_title
+                else:
+                    for root, dirs, files in os.walk(self.base_docs_url, followlinks=True):
+                        for name in files:
+                            # If we have a match, create the relative path from linker to the link
+                            if self.simplify(name) == self.simplify(filename):
+                                # Absolute path to the file we want to link to
+                                abs_link_url = os.path.dirname(os.path.join(
+                                    root, name))
+                                # Constructing relative path from the linker to the link
+                                rel_link_url = os.path.join(
+                                        os.path.relpath(abs_link_url, abs_linker_url), name)
+                                if title:
+                                    rel_link_url = rel_link_url + '#' + format_title
             if rel_link_url == '':
                 print(f"Cannot find {filename} in directory {self.base_docs_url}")
                 if alias:
@@ -264,7 +264,7 @@ def build_md_list(path, keep_only_rooted=False):
                 raise ValueError(f"Duplicate file basename found: {file}\n", md_files[slug_file_name])
 
             # get the relative path to the file, relative to source
-            relative_path_parents = file.relative_to(path).parent.as_posix.split('/')
+            relative_path_parents = file.relative_to(path).parent.split(os.path.sep)
 
             # slugified full path
             slug = Path(*[slugify(part) for part in relative_path_parents]) / slug_file_name
