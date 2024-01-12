@@ -264,7 +264,7 @@ def build_md_list(path, keep_only_rooted=False):
                 raise ValueError(f"Duplicate file basename found: {file}\n", md_files[slug_file_name])
 
             # get the relative path to the file, relative to source
-            relative_path_parents = str(file.relative_to(path).parent).split('/')
+            relative_path_parents = file.relative_to(path).parent.as_posix.split('/')
 
             # slugified full path
             slug = Path(*[slugify(part) for part in relative_path_parents]) / slug_file_name
