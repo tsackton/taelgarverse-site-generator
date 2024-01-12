@@ -8,7 +8,7 @@ from pathlib import Path
 from slugify import slugify
 
 ###############################
-####### REGEXES ###############
+####### CONSTANTS #############
 ###############################
 
 # For Regex, match groups are:
@@ -20,9 +20,45 @@ from slugify import slugify
 #       5: height
 WIKILINK_RE = r"""\[\[(.*?)(\#.*?)?(?:\|([\D][^\|\]]+[\d]*))?(?:\|(\d+)(?:x(\d+))?)?\]\]"""
 
+# words always lowercase in titles
+EXCLUSIONS = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At', 'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With', 'De', 'About']
+ALWAYS_UPPPER = ['DR']
+
 ################################
 ##### FUNCTIONS - MAY MOVE #####
 ################################
+
+def title_case(s, exclusions=EXCLUSIONS, always_upper=ALWAYS_UPPPER):
+    if exclusions is None:
+        exclusions = []
+
+    if always_upper is None:
+        always_upper = []
+
+    # Convert exclusions to lowercase for case-insensitive comparison
+    exclusions = [word.lower() for word in exclusions]
+    # Keep always_upper as it is for exact matching
+
+    words = s.split()
+    title_cased_words = []
+
+    for i, word in enumerate(words):
+        # Remove punctuation for comparison, but retain original for replacement
+        word_stripped = re.sub(r'\W+', '', word)
+
+        # Check if the stripped word (case-insensitive) is in always_upper
+        if any(word_stripped.lower() == au.lower() for au in always_upper):
+            # Preserve original non-word characters, capitalize the rest
+            title_cased_words.append(word.upper())
+        elif i == 0 or word_stripped.lower() not in exclusions:
+            # Capitalize the first character that is a letter
+            title_cased_words.append(re.sub(r'([a-zA-Z])', lambda x: x.groups()[0].upper(), word, 1))
+        else:
+            # If in exclusions, keep the word as it is
+            title_cased_words.append(word.lower())
+
+    return ' '.join(title_cased_words)
+
 
 class WikiLinkReplacer:
     """
@@ -114,7 +150,7 @@ class WikiLinkReplacer:
                                 if title:
                                     rel_link_url = rel_link_url + '#' + format_title
             if rel_link_url == '':
-                print(f"Cannot find {filename} in directory {self.base_docs_url}")
+                # print(f"Cannot find {filename} in directory {self.base_docs_url}")
                 if alias:
                     return alias
                 else:
@@ -283,6 +319,23 @@ def build_md_list(path, keep_only_rooted=False):
 
     return md_files
 
+def build_page_title(fm, file_name):
+    """
+    Check frontmatter, if name exists, use that, with title prepended if it exists.
+    Otherwise, use the filename, changed to title case, with title prepended if it exists.
+    """
+    page_name = title_case(file_name.replace("-", " "), exclusions=EXCLUSIONS)
+    page_title = ""
+
+    if isinstance(fm, dict):    
+        if fm.get("name"):
+            page_name = title_case(fm.get("name"), exclusions=EXCLUSIONS)
+        if fm.get("title"):
+            page_title = title_case(fm.get("title"), exclusions=EXCLUSIONS)
+    
+    return " ".join([page_title, page_name]).strip()
+
+
 # Custom dumper for handling empty values
 class CustomDumper(yaml.SafeDumper):
     def represent_none(self, _):
@@ -322,7 +375,7 @@ output_dir.mkdir(parents=True, exist_ok=True)
 
 if home_file:
     print("Copying " + home_file + " to " + str(source_dir) + "/index.md")
-    shutil.copy(home_file, source_dir / "index.md")
+    shutil.copy(Path(home_file), source_dir / "index.md")
 
 source_files = build_md_list(source_dir, keep_only_rooted)
 
@@ -351,13 +404,23 @@ for file_name in source_files:
         page_path = source_files[file_name]['file']
     else:
         page_path = source_files[file_name]['orig']
-    new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
+
 
     # clean up markdown text
     new_text = strip_date_content(text, target_date) if target_date else text
     new_text = strip_campaign_content(text, target_campaign) if target_campaign else new_text
     new_text = strip_comments(text) if data.get("strip_comments") else new_text
     new_text = re.sub(WIKILINK_RE, WikiLinkReplacer(output_dir, page_path, source_files, slugify_files), new_text) if data.get("fix_links") else new_text
+
+    # clean up frontmatter
+    page_title = build_page_title(fm, file_name)
+    if isinstance(fm, dict):
+        fm["title"] = page_title
+    else:
+        fm = { "title": page_title }
+
+    new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
+    # write out new file
     output = "---\n" + new_frontmatter + "---\n" + new_text
 
     # Write the updated lines to a new file

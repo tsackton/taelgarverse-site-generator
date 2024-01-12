@@ -8,5 +8,5 @@
     "slugify": true,
     "clean_build": true,
     "home_source": "templates/home.md",
-    "keep_only_rooted": true
+    "keep_only_rooted": false
 }
