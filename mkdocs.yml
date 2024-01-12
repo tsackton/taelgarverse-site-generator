@@ -1,0 +1,21 @@
+site_name: TaelgarVerse
+theme:
+  name: material
+markdown_extensions:
+  - md_in_html
+  - footnotes
+  - nl2br
+  - attr_list
+  - sane_lists
+  - meta
+  - smarty
+  - tables
+  - def_list
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
+hooks:
+  - scripts/export_vault.py
+plugins:
+  - search  
+  - callouts
