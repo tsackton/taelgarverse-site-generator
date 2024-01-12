@@ -294,12 +294,22 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     DATE = data.get("export_date", None)
     CAMPAIGN = data.get("campaign", None)
     SLUG = data.get("slugify", True)
+    CLEAN = data.get("clean_build", False)
+    HOME = data.get("home_source", None)
 
 ## SOURCE is input files
 ## OUTPUT is output directory
 
 print("Source: " + str(SOURCE))
 print("Output: " + str(OUTPUT))
+
+if CLEAN:
+    shutil.rmtree(OUTPUT)
+
+OUTPUT.mkdir(parents=True, exist_ok=True)
+
+if HOME:
+    shutil.copy(HOME, OUTPUT / HOME)
 
 SOURCE_FILES = build_md_list(SOURCE)
 

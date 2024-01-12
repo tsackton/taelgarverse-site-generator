@@ -5,5 +5,7 @@
     "export_date": "1749-03-09",
     "fix_links": true,
     "strip_comments": true,
-    "slugify": true
+    "slugify": true,
+    "clean_build": true,
+    "home_source": "templates/home.md"
 }
