@@ -309,7 +309,7 @@ if CLEAN:
 OUTPUT.mkdir(parents=True, exist_ok=True)
 
 if HOME:
-    shutil.copy(HOME, OUTPUT / HOME)
+    shutil.copy(HOME, OUTPUT / "index.md")
 
 SOURCE_FILES = build_md_list(SOURCE)
 
