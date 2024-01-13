@@ -368,11 +368,11 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     target_date = data.get("export_date", None)
     target_campaign = data.get("campaign", None)
     slugify_files = data.get("slugify", True)
-    clean_build_dir = data.get("clean_build", False)
+    clean_build_dir = data.get("clean_build", True)
     home_file = data.get("home_source", None)
-    literate_nav = data.get("literate_nav", "templates/toc.md")
+    literate_nav = data.get("literate_nav", None)
     keep_only_rooted = data.get("keep_only_rooted", False)
-    hide_tocs_tags = data.get("hide_tocs_tags", ["person"])
+    hide_tocs_tags = data.get("hide_toc_tags", [])
 
 ## SOURCE is input files
 ## OUTPUT is output directory
@@ -436,9 +436,11 @@ for file_name in source_files:
         fm = { "title": page_title }
 
     # exclude toc from selected tags
-    if fm.get("tags") and hide_tocs_tags:
-        if any(tag in fm["tags"] for tag in hide_tocs_tags):
-            fm["hide"] = ['toc']
+    tags = fm.get("tags", [])
+    if tags and hide_tocs_tags:
+        clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
+        if any(tag in clean_tags for tag in hide_tocs_tags):
+            fm["hide"] = ["toc"]
 
     new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
     # write out new file

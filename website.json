@@ -8,5 +8,7 @@
     "slugify": true,
     "clean_build": true,
     "home_source": "templates/home.md",
-    "keep_only_rooted": false
+    "keep_only_rooted": false,
+    "hide_toc_tags": ["person", "item"],
+    "literate_nav": "templates/toc.md"
 }
