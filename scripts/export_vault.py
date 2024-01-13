@@ -425,12 +425,5 @@ for file_name in source_files:
 
     # Write the updated lines to a new file
     with open(new_file_path, 'w', 2048, "utf-8") as output_file:
-        '''
-        Would replace text with this if we wanted to add a note that the thing doesn't exist yet
-        if not thing_exist:
-            newlines = metadata_block
-            newlines.append("# " + metadata.get("name", "unnamed entity") + "\n")
-            newlines.append("**This does not exist yet!**\n")
-        '''
         output_file.writelines(output)
  
