@@ -5,6 +5,9 @@ theme:
     - navigation.instant
     - navigation.tracking
     - navigation.indexes
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
 
 markdown_extensions:
   - md_in_html
@@ -24,3 +27,6 @@ hooks:
 plugins:
   - search  
   - callouts
+  - section-index
+  - literate-nav:
+      nav_file: toc.md

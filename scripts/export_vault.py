@@ -28,7 +28,7 @@ ALWAYS_UPPPER = ['DR']
 ##### FUNCTIONS - MAY MOVE #####
 ################################
 
-def title_case(s, exclusions=EXCLUSIONS, always_upper=ALWAYS_UPPPER):
+def title_case(s, exclusions=None, always_upper=None):
     if exclusions is None:
         exclusions = []
 
@@ -51,8 +51,8 @@ def title_case(s, exclusions=EXCLUSIONS, always_upper=ALWAYS_UPPPER):
             # Preserve original non-word characters, capitalize the rest
             title_cased_words.append(word.upper())
         elif i == 0 or word_stripped.lower() not in exclusions:
-            # Capitalize the first character that is a letter
-            title_cased_words.append(re.sub(r'([a-zA-Z])', lambda x: x.groups()[0].upper(), word, 1))
+            # Capitalize the first unicode character that is a letter
+            title_cased_words.append(re.sub(r'(\b\w)', lambda x: x.groups()[0].upper(), word, 1))
         else:
             # If in exclusions, keep the word as it is
             title_cased_words.append(word.lower())
@@ -165,23 +165,34 @@ class WikiLinkReplacer:
         # Windows escapes "\" unintentionally, and it creates incorrect links, so need to replace with "/"
         rel_link_url = rel_link_url.replace("\\", "/")
 
-        if filename:
-            if alias:
-                link = f'[{alias}](<{rel_link_url}>)'
-            else:
-                link = f'[{filename+title}](<{rel_link_url}>)'
-        else:
-            if alias:
-                link = f'[{alias}](<{rel_link_url}>)'
-            else:
-                link = f'[{title}](<{rel_link_url}>)'
+        # define image link as: filename has is xxx.png, xxx.jpg, xxx.jpeg, xxx.gif, or alias = right or left, or width or height is not empty
+        image_link = re.search(r".*\.(png|jpg|jpeg|gif)$", filename) or alias in ["right", "left"] or width or height
 
-        if width and not height:
-            link = f'{link}{{ width="{width}" }}'
-        elif not width and height:
-            link = f'{link}{{ height="{height}" }}'
-        elif width and height:
-            link = f'{link}{{ width="{width}"; height="{height}" }}'
+        if image_link:
+            # alias becomes align = right or left
+            # width and height becomes width and height
+            # convert -_ to space in filename, remove extension, and title case for alias
+            alignment = f'align="{alias}"' if alias in ["right", "left"] else ""
+            width = f'width="{width}"' if width else ""
+            height = f'height="{height}"' if height else ""
+            alias = title_case(re.sub(r".*\.(png|jpg|jpeg|gif)", "", filename.replace("-", " ").replace("_", " ")))
+            if alignment or width or height:
+                image_params = "{" + "; ".join([param for param in [alignment, width, height] if param]) + "}"
+            else:
+                image_params = ""
+            link = f'[{alias}]({rel_link_url}){image_params}'
+                               
+        else:
+            if filename:
+                if alias:
+                    link = f'[{alias}](<{rel_link_url}>)'
+                else:
+                    link = f'[{filename+title}](<{rel_link_url}>)'
+            else:
+                if alias:
+                    link = f'[{alias}](<{rel_link_url}>)'
+                else:
+                    link = f'[{title}](<{rel_link_url}>)'
 
         return link
 
@@ -359,6 +370,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     slugify_files = data.get("slugify", True)
     clean_build_dir = data.get("clean_build", False)
     home_file = data.get("home_source", None)
+    literate_nav = data.get("literate_nav", "templates/toc.md")
     keep_only_rooted = data.get("keep_only_rooted", False)
 
 ## SOURCE is input files
@@ -376,6 +388,7 @@ output_dir.mkdir(parents=True, exist_ok=True)
 if home_file:
     print("Copying " + home_file + " to " + str(source_dir) + "/index.md")
     shutil.copy(Path(home_file), source_dir / "index.md")
+    shutil.copy(Path(literate_nav), source_dir / "toc.md")
 
 source_files = build_md_list(source_dir, keep_only_rooted)
 
