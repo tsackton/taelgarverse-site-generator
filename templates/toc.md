@@ -1,78 +1,79 @@
 - [Home](index.md)
-- [Dunmari Frontier Campaign](campaigns/dunmari-frontier/dunmari-frontier-campaign.md)
+- [Dunmar Campaign](campaigns/dunmari-frontier/dunmari-frontier-campaign.md)
     - [Characters](people/pcs/dunmar-fellowship/dunmar-fellowship.md)
-        - people/pcs/dunmar-fellowship/*
-        - Guests
-            - people/pcs/dunmar-fellowship/guests/*
-        - Companions
-            - people/pcs/dunmar-fellowship/companions/*
+        - {glob: people/pcs/dunmar-fellowship/, exclude: dunmar-fellowship.md}
     - Session Info
         - [Session Notes](campaigns/dunmari-frontier/session-notes-index.md)
         - Kenzo's Collected Stories
-            - campaigns/dunmari-frontier/collected-stories/*
+            - {glob: campaigns/dunmari-frontier/collected-stories/}
         - Letters, Notes, and Tales
-            - campaigns/dunmari-frontier/letters-notes-and-tales/*
+            - {glob: campaigns/dunmari-frontier/letters-notes-and-tales/}
         - Dreams and Visions
-            - campaigns/dunmari-frontier/dreams-and-visions/*
+            - {glob: campaigns/dunmari-frontier/dreams-and-visions/}
         - Scrying
-            - campaigns/dunmari-frontier/scrying-and-spying/*
+            - {glob: campaigns/dunmari-frontier/scrying-and-spying/}
         - Mirror Visions
-            - campaigns/dunmari-frontier/mirror-visions/*
+            - {glob: campaigns/dunmari-frontier/mirror-visions/}
     - [Treasure](campaigns/dunmari-frontier/party-treasure.md)
         - [Vindristjarna](things/ships/vindristjarna.md)
             - [Bastion Facilities](campaigns/dunmari-frontier/vindristjarna-room-planning.md)
         - Dunmari Frontier Items
-            - campaigns/dunmari-frontier/treasure/*
-        - things/magic-items/*
-        - things/artifacts-of-power/*
-        - things/books/*
+            - {glob: campaigns/dunmari-frontier/treasure/}
+        - {glob: things/magic-items/}
+        - {glob: things/artifacts-of-power/}
+        - {glob: things/books/}
 - People
     - [Humans](species/humans/humans.md)
         - Chardonians
-            - people/chardonians/*
+            - {glob: people/chardonians/}
         - Deno'qai
-            - people/deno-qai/*
+            - {glob: people/deno-qai/}
         - Dunmari
-            - people/dunmari/*
+            - {glob: people/dunmari/}
         - Mawarans
-            - people/mawarans/*
+            - {glob: people/mawarans/}
         - Sembarans
-            - people/sembarans/*
+            - {glob: people/sembarans/}
         - Skaer
-            - people/skaer/*
+            - {glob: people/skaer/}
         - Tollenders
-            - people/tollenders/*
+            - {glob: people/tollenders/}
         - Other Humans
-            - people/other-humans/*
+            - {glob: people/other-humans/}
       - [Elves](species/children-of-the-embodied-gods/elves/elves.md)
-          - people/elves/*
+          - {glob: people/elves/}
       - [Dwarves](species/children-of-the-embodied-gods/dwarves/dwarves.md)
-          - people/dwarves/*
+          - {glob: people/dwarves/}
       - [Halflings](species/children-of-the-embodied-gods/halflings/halflings.md)
-          - people/halflings/*
+          - {glob: people/halflings/}
       - [Lizardfolk](species/children-of-the-embodied-gods/lizardfolk/lizardfolk.md)
-          - people/lizardfolk/*
+          - {glob: people/lizardfolk/}
       - [Stoneborn](species/children-of-the-embodied-gods/stoneborn/stoneborn.md)
           - [Umli](people/other-nonhumans/umli.md)
 - [Gazetteer](gazetteer/geography-of-taelgar.md)
-    - gazetteer/*/
+    - {glob: gazetteer, exclude: endless-ocean.md;green-sea.md;geography-of-taelgar.md;gazetteer.md}
     - [Endless Ocean](gazetteer/endless-ocean.md)
     - [Green Sea](gazetteer/green-sea.md)
     - Other Planes
         - [Feywild](cosmology/multiverse/echo-realms/feywild/feywild.md)
-            - cosmology/multiverse/echo-realms/feywild/*
+            - {glob: cosmology/multiverse/echo-realms/feywild/}
         - [Shadowfell](cosmology/multiverse/echo-realms/shadowfell/shadowfell.md)
-            - cosmology/multiverse/echo-realms/shadowfell/*
+            - {glob: cosmology/multiverse/echo-realms/shadowfell/}
         - [Spiritual Realms](cosmology/multiverse/spiritual-realms/spiritual-realms.md)
-            - cosmology/multiverse/spiritual-realms/*
+            - {glob: cosmology/multiverse/spiritual-realms/}
         - [Energy Realms](cosmology/multiverse/energy-realms/energy-realms.md)
-            - cosmology/multiverse/energy-realms/*
+            - {glob: cosmology/multiverse/energy-realms/}
         - [Mirror Realm](cosmology/multiverse/echo-realms/mirror-realm.md)
 - History and Events
     - Events
-        - events/*
+        - {glob: events/}
     - History
-        - history/*
-        - people/historical-figures/*
+        - {glob: history/}
+        - {glob: people/historical-figures/}
     - Primary Sources
-        - primary-sources/*
+        - {glob: primary-sources/}
+- Cosmology
+    - Gods
+        - {glob: cosmology/gods}
+    - Religions
+        - {glob: cosmology/religions}
