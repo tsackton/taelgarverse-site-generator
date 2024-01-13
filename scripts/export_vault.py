@@ -175,7 +175,7 @@ class WikiLinkReplacer:
             alignment = f'align="{alias}"' if alias in ["right", "left"] else ""
             width = f'width="{width}"' if width else ""
             height = f'height="{height}"' if height else ""
-            alias = title_case(re.sub(r".*\.(png|jpg|jpeg|gif)", "", filename.replace("-", " ").replace("_", " ")))
+            alias = title_case(Path(filename).stem.replace("-", " ").replace("_", " "))
             if alignment or width or height:
                 image_params = "{" + "; ".join([param for param in [alignment, width, height] if param]) + "}"
             else:
@@ -372,6 +372,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     home_file = data.get("home_source", None)
     literate_nav = data.get("literate_nav", "templates/toc.md")
     keep_only_rooted = data.get("keep_only_rooted", False)
+    hide_tocs_tags = data.get("hide_tocs_tags", ["person"])
 
 ## SOURCE is input files
 ## OUTPUT is output directory
@@ -388,6 +389,8 @@ output_dir.mkdir(parents=True, exist_ok=True)
 if home_file:
     print("Copying " + home_file + " to " + str(source_dir) + "/index.md")
     shutil.copy(Path(home_file), source_dir / "index.md")
+if literate_nav:
+    print("Copying " + literate_nav + " to " + str(source_dir) + "/toc.md")
     shutil.copy(Path(literate_nav), source_dir / "toc.md")
 
 source_files = build_md_list(source_dir, keep_only_rooted)
@@ -431,6 +434,11 @@ for file_name in source_files:
         fm["title"] = page_title
     else:
         fm = { "title": page_title }
+
+    # exclude toc from selected tags
+    if fm.get("tags") and hide_tocs_tags:
+        if any(tag in fm["tags"] for tag in hide_tocs_tags):
+            fm["hide"] = ['toc']
 
     new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
     # write out new file
