@@ -5,6 +5,9 @@ theme:
     - navigation.instant
     - navigation.tracking
     - navigation.indexes
+    - navigation.tabs
+    - navigation.tabs.sticky
+    - navigation.top
 
 markdown_extensions:
   - md_in_html
@@ -18,9 +21,20 @@ markdown_extensions:
   - def_list
   - admonition
   - pymdownx.details
-  - pymdownx.superfences
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
 hooks:
   - scripts/export_vault.py
 plugins:
   - search  
+  - glightbox
   - callouts
+  - literate-nav:
+      nav_file: toc.md
+  - section-index

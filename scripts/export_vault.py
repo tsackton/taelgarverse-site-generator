@@ -28,36 +28,105 @@ ALWAYS_UPPPER = ['DR']
 ##### FUNCTIONS - MAY MOVE #####
 ################################
 
-def title_case(s, exclusions=EXCLUSIONS, always_upper=ALWAYS_UPPPER):
-    if exclusions is None:
-        exclusions = []
+# Custom dumper for handling empty values
+class CustomDumper(yaml.SafeDumper):
+    def represent_none(self, _):
+        return self.represent_scalar('tag:yaml.org,2002:null', '')
 
-    if always_upper is None:
-        always_upper = []
+# Add custom representation for None (null) values
+CustomDumper.add_representer(type(None), CustomDumper.represent_none)
 
-    # Convert exclusions to lowercase for case-insensitive comparison
-    exclusions = [word.lower() for word in exclusions]
-    # Keep always_upper as it is for exact matching
+class MkDocsNavigationGenerator:
+    def __init__(self, template_path, file_frontmatter, docs_dir):
+        self.template_path = template_path
+        self.file_frontmatter = file_frontmatter
+        self.source_dir = Path(docs_dir)
 
-    words = s.split()
-    title_cased_words = []
+    @staticmethod
+    def count_indentation(line):
+        """ Count the number of leading spaces or tabs to determine the depth """
+        return (len(line) - len(line.lstrip(' '))) // 4  # Assuming 4 spaces per indentation level
 
-    for i, word in enumerate(words):
-        # Remove punctuation for comparison, but retain original for replacement
-        word_stripped = re.sub(r'\W+', '', word)
+    def generate_markdown_list_from_directory(self, directory_list, depth=0, exclude_files=None, flatten=False):
+        """ Generate markdown list entries from a directory based on file_frontmatter info """
+        markdown_list = []
+        indent = '    ' * depth  # 4 spaces for each level of nesting
 
-        # Check if the stripped word (case-insensitive) is in always_upper
-        if any(word_stripped.lower() == au.lower() for au in always_upper):
-            # Preserve original non-word characters, capitalize the rest
-            title_cased_words.append(word.upper())
-        elif i == 0 or word_stripped.lower() not in exclusions:
-            # Capitalize the first character that is a letter
-            title_cased_words.append(re.sub(r'([a-zA-Z])', lambda x: x.groups()[0].upper(), word, 1))
+        if not exclude_files:
+            exclude_files = []
+
+        files = []
+        subdirs = []
+        ## if flatten is true, we just care about files and want to just get all the files recursively from all dirs in directory list
+        if flatten:
+            if isinstance(directory_list, Path):
+                directory_list = [directory_list]
+            for directory in directory_list:
+                full_path = self.source_dir / Path(directory)
+                files = files + [item for item in full_path.rglob("*.md") if item.is_file() and item.name not in exclude_files]
         else:
-            # If in exclusions, keep the word as it is
-            title_cased_words.append(word.lower())
+            if isinstance(directory_list, Path):
+                directory_list = [directory_list]
+            for directory in directory_list:
+                full_path = self.source_dir / Path(directory)
+                files = files + [item for item in full_path.glob("*.md") if item.is_file() and item.name not in exclude_files]
+                subdirs = subdirs + [item for item in full_path.iterdir() if item.is_dir()]
 
-    return ' '.join(title_cased_words)
+        # Process files
+        for file_path in sorted(files, key=lambda x: self.file_frontmatter.get(x.stem, {}).get('title', '').lower()):
+            file_display_path = file_path.relative_to(self.source_dir)
+            title = self.file_frontmatter.get(file_path.stem, {}).get('title', '~Unnamed~')
+            unlisted = self.file_frontmatter.get(file_path.stem, {}).get('unlisted', False)
+            if unlisted:
+                continue
+            markdown_list.append(f"{indent}- [{title}]({file_display_path})")
+
+        # Process subdirectories
+        for subdir in sorted(subdirs, key=lambda x: x.name.lower()):
+            subdir_path = subdir.relative_to(self.source_dir)
+            index_file = subdir_path / f"{subdir.name}.md"
+
+            if (self.source_dir / index_file).is_file() and index_file.stem in self.file_frontmatter:
+                title = self.file_frontmatter[index_file.stem].get('title', title_case(subdir.stem.replace("-", " ")))
+                markdown_list.append(f"{indent}- [{title}]({index_file})")
+                exclude_files.append(index_file.name)
+            else:
+                # title case subdir name
+                subdir = title_case(subdir.name.replace("-", " "))
+                markdown_list.append(f"{indent}- {subdir}")
+            markdown_list.extend(self.generate_markdown_list_from_directory(subdir_path, depth + 1, exclude_files=exclude_files))
+
+        return markdown_list
+
+    def process_template(self):
+        """ Process the template file and replace glob patterns with generated markdown lists """
+        processed_lines = []
+
+        with open(self.template_path, 'r') as template_file:
+            for line in template_file:
+                if '{glob:' in line:
+                    # Extract directory path, calculate depth, and parse optional exclude pattern
+                    flatten = False
+                    parts = line.split(',')
+                    dir_paths = parts[0].split('{glob:')[-1].strip().replace('}', '').split(";")
+                    if len(dir_paths) > 1:
+                        if 'flatten' in dir_paths:
+                            flatten = True
+                    dir_path = [dir for dir in dir_paths if dir != 'flatten']
+                    exclude_files = None
+                    if len(parts) > 1 and 'exclude:' in parts[1]:
+                        exclude_files = parts[1].split('exclude:')[-1].strip().strip('}').split(";")
+                    depth = self.count_indentation(line)
+                    processed_lines.extend(
+                        self.generate_markdown_list_from_directory(
+                            dir_path, depth, exclude_files=exclude_files, flatten=flatten
+                        )
+                    )
+                else:
+                    processed_lines.append(line.rstrip())
+
+        return processed_lines
+
 
 
 class WikiLinkReplacer:
@@ -165,25 +234,68 @@ class WikiLinkReplacer:
         # Windows escapes "\" unintentionally, and it creates incorrect links, so need to replace with "/"
         rel_link_url = rel_link_url.replace("\\", "/")
 
-        if filename:
-            if alias:
-                link = f'[{alias}](<{rel_link_url}>)'
-            else:
-                link = f'[{filename+title}](<{rel_link_url}>)'
-        else:
-            if alias:
-                link = f'[{alias}](<{rel_link_url}>)'
-            else:
-                link = f'[{title}](<{rel_link_url}>)'
+        # define image link as: filename has is xxx.png, xxx.jpg, xxx.jpeg, xxx.gif, or alias = right or left, or width or height is not empty
+        image_link = re.search(r".*\.(png|jpg|jpeg|gif)$", filename) or alias in ["right", "left"] or width or height
 
-        if width and not height:
-            link = f'{link}{{ width="{width}" }}'
-        elif not width and height:
-            link = f'{link}{{ height="{height}" }}'
-        elif width and height:
-            link = f'{link}{{ width="{width}"; height="{height}" }}'
+        if image_link:
+            # alias becomes align = right or left
+            # width and height becomes width and height
+            # convert -_ to space in filename, remove extension, and title case for alias
+            alignment = f'align="{alias}"' if alias in ["right", "left"] else ""
+            width = f'width="{width}"' if width else ""
+            height = f'height="{height}"' if height else ""
+            alias = title_case(Path(filename).stem.replace("-", " ").replace("_", " "))
+            if alignment or width or height:
+                image_params = "{" + "; ".join([param for param in [alignment, width, height] if param]) + "}"
+            else:
+                image_params = ""
+            link = f'[{alias}]({rel_link_url}){image_params}'
+                               
+        else:
+            if filename:
+                if alias:
+                    link = f'[{alias}](<{rel_link_url}>)'
+                else:
+                    link = f'[{filename+title}](<{rel_link_url}>)'
+            else:
+                if alias:
+                    link = f'[{alias}](<{rel_link_url}>)'
+                else:
+                    link = f'[{title}](<{rel_link_url}>)'
 
         return link
+
+
+def title_case(s, exclusions=None, always_upper=None):
+    if exclusions is None:
+        exclusions = []
+
+    if always_upper is None:
+        always_upper = []
+
+    # Convert exclusions to lowercase for case-insensitive comparison
+    exclusions = [word.lower() for word in exclusions]
+    # Keep always_upper as it is for exact matching
+
+    words = s.split()
+    title_cased_words = []
+
+    for i, word in enumerate(words):
+        # Remove punctuation for comparison, but retain original for replacement
+        word_stripped = re.sub(r'\W+', '', word)
+
+        # Check if the stripped word (case-insensitive) is in always_upper
+        if any(word_stripped.lower() == au.lower() for au in always_upper):
+            # Preserve original non-word characters, capitalize the rest
+            title_cased_words.append(word.upper())
+        elif i == 0 or word_stripped.lower() not in exclusions:
+            # Capitalize the first unicode character that is a letter
+            title_cased_words.append(re.sub(r'(\b\w)', lambda x: x.groups()[0].upper(), word, 1))
+        else:
+            # If in exclusions, keep the word as it is
+            title_cased_words.append(word.lower())
+
+    return ' '.join(title_cased_words)
 
 def parse_markdown_file(file_path):
     """
@@ -336,15 +448,6 @@ def build_page_title(fm, file_name):
     return " ".join([page_title, page_name]).strip()
 
 
-# Custom dumper for handling empty values
-class CustomDumper(yaml.SafeDumper):
-    def represent_none(self, _):
-        return self.represent_scalar('tag:yaml.org,2002:null', '')
-
-# Add custom representation for None (null) values
-CustomDumper.add_representer(type(None), CustomDumper.represent_none)
-
-
 ################################
 ##### PARSE WEBSITE CONFIG #####
 ################################
@@ -357,9 +460,12 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     target_date = data.get("export_date", None)
     target_campaign = data.get("campaign", None)
     slugify_files = data.get("slugify", True)
-    clean_build_dir = data.get("clean_build", False)
+    clean_build_dir = data.get("clean_build", True)
     home_file = data.get("home_source", None)
+    literate_nav = data.get("literate_nav", None)
     keep_only_rooted = data.get("keep_only_rooted", False)
+    hide_tocs_tags = data.get("hide_toc_tags", [])
+    exclude_tildes = data.get("exclude_tildes", True)
 
 ## SOURCE is input files
 ## OUTPUT is output directory
@@ -378,6 +484,9 @@ if home_file:
     shutil.copy(Path(home_file), source_dir / "index.md")
 
 source_files = build_md_list(source_dir, keep_only_rooted)
+metadata = {}
+
+print("Processing files")
 
 for file_name in source_files:
     # Construct new path
@@ -419,11 +528,37 @@ for file_name in source_files:
     else:
         fm = { "title": page_title }
 
-    new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
+    # exclude toc from selected tags
+    tags = fm.get("tags", [])
+    if tags and hide_tocs_tags:
+        clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
+        if any(tag in clean_tags for tag in hide_tocs_tags):
+            fm["hide"] = ["toc"]
+
+    basename = Path(new_file_path).stem
+
+    if exclude_tildes and file_name.startswith("~"):
+        if "unlisted" in fm:
+            continue
+        fm["unlisted"] = True 
+
+    metadata[basename] = fm
+    
     # write out new file
+    new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
     output = "---\n" + new_frontmatter + "---\n" + new_text
 
-    # Write the updated lines to a new file
     with open(new_file_path, 'w', 2048, "utf-8") as output_file:
         output_file.writelines(output)
  
+## generate literate nav
+
+if literate_nav:
+    print("Generating nav file from template " + literate_nav)
+    nav_generator = MkDocsNavigationGenerator(literate_nav, metadata, output_dir)
+    processed_template = nav_generator.process_template()
+
+    nav_path = output_dir / "toc.md"
+
+    with open(nav_path, 'w') as output_file:
+        output_file.write('\n'.join(processed_template))
