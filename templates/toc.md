@@ -60,13 +60,13 @@
     - [Fey](species/children-of-the-divine/fey/fey.md)
         - {glob: people/fey}
     - Other Nonhumans
-        - {glob: people/other-nonhumans;people/giants, exclude: umli.md}
+        - {glob: people/other-nonhumans;people/giants;people/kenku, exclude: umli.md}
     - Extraplanar Powers
         - {glob: people/extraplanar-powers/}
     - Organizations
         - {glob: groups/}
 - [Gazetteer](campaigns/player-s-guide.md)
-    - [World of Taelgar](gazetteer/geography-of-taeglar.md)
+    - [World of Taelgar](gazetteer/geography-of-taelgar.md)
         - {glob: gazetteer, exclude: endless-ocean.md;green-sea.md;geography-of-taelgar.md;gazetteer.md}
         - [Endless Ocean](gazetteer/endless-ocean.md)
         - [Green Sea](gazetteer/green-sea.md)
@@ -121,5 +121,9 @@
         - {glob: events/;flatten}
     - Primary Sources
         - {glob: primary-sources/}
-
+- [Other Campaigns](people/pcs/pcs.md)
+    - [Mawar](campaigns/mawar-confederacy/mawar-adventures.md)
+        - Characters
+            - {glob: people/pcs/mawar-confederacy}
+        - {glob: campaigns/mawar-confederacy/, exclude: mawar-adventures.md}
 
