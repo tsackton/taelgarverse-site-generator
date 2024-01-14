@@ -18,10 +18,8 @@
         - [Vindristjarna](things/ships/vindristjarna.md)
             - [Bastion Facilities](campaigns/dunmari-frontier/vindristjarna-room-planning.md)
         - Dunmari Frontier Items
-            - {glob: campaigns/dunmari-frontier/treasure/}
-        - {glob: things/magic-items/}
-        - {glob: things/artifacts-of-power/}
-        - {glob: things/books/}
+            - {glob: campaigns/dunmari-frontier/treasure/;flatten}
+        - {glob: things/magic-items/;things/artifacts-of-power;things/books} 
 - People
     - [Humans](species/humans/humans.md)
         - Chardonians
@@ -68,8 +66,7 @@
     - Events
         - {glob: events/}
     - History
-        - {glob: history/}
-        - {glob: people/historical-figures/}
+        - {glob: history/;people/historical-figures}
     - Primary Sources
         - {glob: primary-sources/}
 - Cosmology

@@ -27,6 +27,6 @@ hooks:
 plugins:
   - search  
   - callouts
-  - section-index
   - literate-nav:
       nav_file: toc.md
+  - section-index

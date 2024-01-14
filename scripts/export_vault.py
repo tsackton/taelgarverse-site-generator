@@ -37,10 +37,9 @@ class CustomDumper(yaml.SafeDumper):
 CustomDumper.add_representer(type(None), CustomDumper.represent_none)
 
 class MkDocsNavigationGenerator:
-    def __init__(self, template_path, file_frontmatter, docs_dir, exclude_tildes=True):
+    def __init__(self, template_path, file_frontmatter, docs_dir):
         self.template_path = template_path
         self.file_frontmatter = file_frontmatter
-        self.exclude_tildes = exclude_tildes
         self.source_dir = Path(docs_dir)
 
     @staticmethod
@@ -48,24 +47,37 @@ class MkDocsNavigationGenerator:
         """ Count the number of leading spaces or tabs to determine the depth """
         return (len(line) - len(line.lstrip(' '))) // 4  # Assuming 4 spaces per indentation level
 
-    def generate_markdown_list_from_directory(self, directory, depth=0, exclude_files=None):
+    def generate_markdown_list_from_directory(self, directory_list, depth=0, exclude_files=None, flatten=False):
         """ Generate markdown list entries from a directory based on file_frontmatter info """
         markdown_list = []
         indent = '    ' * depth  # 4 spaces for each level of nesting
 
-        full_path = self.source_dir / Path(directory)
         if not exclude_files:
             exclude_files = []
 
-        # Separate files and subdirectories
-        files = [item for item in full_path.glob("*.md") if item.is_file() and item.name not in exclude_files]
-        subdirs = [item for item in full_path.iterdir() if item.is_dir()]
+        files = []
+        subdirs = []
+        ## if flatten is true, we just care about files and want to just get all the files recursively from all dirs in directory list
+        if flatten:
+            if isinstance(directory_list, Path):
+                directory_list = [directory_list]
+            for directory in directory_list:
+                full_path = self.source_dir / Path(directory)
+                files = files + [item for item in full_path.rglob("*.md") if item.is_file() and item.name not in exclude_files]
+        else:
+            if isinstance(directory_list, Path):
+                directory_list = [directory_list]
+            for directory in directory_list:
+                full_path = self.source_dir / Path(directory)
+                files = files + [item for item in full_path.glob("*.md") if item.is_file() and item.name not in exclude_files]
+                subdirs = subdirs + [item for item in full_path.iterdir() if item.is_dir()]
 
         # Process files
         for file_path in sorted(files, key=lambda x: self.file_frontmatter.get(x.stem, {}).get('title', '').lower()):
             file_display_path = file_path.relative_to(self.source_dir)
             title = self.file_frontmatter.get(file_path.stem, {}).get('title', '~Unnamed~')
-            if title.startswith("~") and self.exclude_tildes:
+            unlisted = self.file_frontmatter.get(file_path.stem, {}).get('unlisted', False)
+            if unlisted:
                 continue
             markdown_list.append(f"{indent}- [{title}]({file_display_path})")
 
@@ -77,6 +89,7 @@ class MkDocsNavigationGenerator:
             if (self.source_dir / index_file).is_file() and index_file.stem in self.file_frontmatter:
                 title = self.file_frontmatter[index_file.stem].get('title', title_case(subdir.stem.replace("-", " ")))
                 markdown_list.append(f"{indent}- [{title}]({index_file})")
+                exclude_files.append(index_file.name)
             else:
                 # title case subdir name
                 subdir = title_case(subdir.name.replace("-", " "))
@@ -93,15 +106,20 @@ class MkDocsNavigationGenerator:
             for line in template_file:
                 if '{glob:' in line:
                     # Extract directory path, calculate depth, and parse optional exclude pattern
+                    flatten = False
                     parts = line.split(',')
-                    dir_path = parts[0].split('{glob:')[-1].strip().replace('}', '')
+                    dir_paths = parts[0].split('{glob:')[-1].strip().replace('}', '').split(";")
+                    if len(dir_paths) > 1:
+                        if 'flatten' in dir_paths:
+                            flatten = True
+                    dir_path = [dir for dir in dir_paths if dir != 'flatten']
                     exclude_files = None
                     if len(parts) > 1 and 'exclude:' in parts[1]:
                         exclude_files = parts[1].split('exclude:')[-1].strip().strip('}').split(";")
                     depth = self.count_indentation(line)
                     processed_lines.extend(
                         self.generate_markdown_list_from_directory(
-                            dir_path, depth, exclude_files=exclude_files
+                            dir_path, depth, exclude_files=exclude_files, flatten=flatten
                         )
                     )
                 else:
@@ -517,13 +535,19 @@ for file_name in source_files:
         if any(tag in clean_tags for tag in hide_tocs_tags):
             fm["hide"] = ["toc"]
 
-    new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
-    # write out new file
-    output = "---\n" + new_frontmatter + "---\n" + new_text
     basename = Path(new_file_path).stem
-    metadata[basename] = fm
 
-    # Write the updated lines to a new file
+    if exclude_tildes and file_name.startswith("~"):
+        if "unlisted" in fm:
+            continue
+        fm["unlisted"] = True 
+
+    metadata[basename] = fm
+    
+    # write out new file
+    new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
+    output = "---\n" + new_frontmatter + "---\n" + new_text
+
     with open(new_file_path, 'w', 2048, "utf-8") as output_file:
         output_file.writelines(output)
  
@@ -531,7 +555,7 @@ for file_name in source_files:
 
 if literate_nav:
     print("Generating nav file from template " + literate_nav)
-    nav_generator = MkDocsNavigationGenerator(literate_nav, metadata, output_dir, exclude_tildes)
+    nav_generator = MkDocsNavigationGenerator(literate_nav, metadata, output_dir)
     processed_template = nav_generator.process_template()
 
     nav_path = output_dir / "toc.md"
