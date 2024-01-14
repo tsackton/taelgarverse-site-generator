@@ -4,6 +4,7 @@
         - {glob: people/pcs/dunmar-fellowship/, exclude: dunmar-fellowship.md}
     - Session Info
         - [Session Notes](campaigns/dunmari-frontier/session-notes-index.md)
+            - {glob: campaigns/dunmari-frontier/session-notes/}
         - Kenzo's Collected Stories
             - {glob: campaigns/dunmari-frontier/collected-stories/}
         - Letters, Notes, and Tales
@@ -18,9 +19,15 @@
         - [Vindristjarna](things/ships/vindristjarna.md)
             - [Bastion Facilities](campaigns/dunmari-frontier/vindristjarna-room-planning.md)
         - Dunmari Frontier Items
-            - {glob: campaigns/dunmari-frontier/treasure/;flatten}
-        - {glob: things/magic-items/;things/artifacts-of-power;things/books} 
-- People
+            - {glob: campaigns/dunmari-frontier/treasure/;things/magic-items/;flatten}
+        - Artifacts of Power
+            - {glob: things/artifacts-of-power}
+        - Books of Taelgar
+            - {glob: things/books}
+    - Mechanics
+        - {glob: campaigns/mechanics/}
+        - [Languages](species/languages.md)
+- [People](species/species.md)
     - [Humans](species/humans/humans.md)
         - Chardonians
             - {glob: people/chardonians/}
@@ -38,20 +45,31 @@
             - {glob: people/tollenders/}
         - Other Humans
             - {glob: people/other-humans/}
-      - [Elves](species/children-of-the-embodied-gods/elves/elves.md)
-          - {glob: people/elves/}
-      - [Dwarves](species/children-of-the-embodied-gods/dwarves/dwarves.md)
-          - {glob: people/dwarves/}
-      - [Halflings](species/children-of-the-embodied-gods/halflings/halflings.md)
-          - {glob: people/halflings/}
-      - [Lizardfolk](species/children-of-the-embodied-gods/lizardfolk/lizardfolk.md)
-          - {glob: people/lizardfolk/}
-      - [Stoneborn](species/children-of-the-embodied-gods/stoneborn/stoneborn.md)
-          - [Umli](people/other-nonhumans/umli.md)
-- [Gazetteer](gazetteer/geography-of-taelgar.md)
-    - {glob: gazetteer, exclude: endless-ocean.md;green-sea.md;geography-of-taelgar.md;gazetteer.md}
-    - [Endless Ocean](gazetteer/endless-ocean.md)
-    - [Green Sea](gazetteer/green-sea.md)
+    - [Elves](species/children-of-the-embodied-gods/elves/elves.md)
+        - {glob: people/elves/}
+    - [Dwarves](species/children-of-the-embodied-gods/dwarves/dwarves.md)
+        - {glob: people/dwarves/}
+    - [Halflings](species/children-of-the-embodied-gods/halflings/halflings.md)
+        - {glob: people/halflings/}
+    - [Lizardfolk](species/children-of-the-embodied-gods/lizardfolk/lizardfolk.md)
+        - {glob: people/lizardfolk/}
+    - [Stoneborn](species/children-of-the-embodied-gods/stoneborn/stoneborn.md)
+        - [Umli](people/other-nonhumans/umli.md)
+    - [Orcs](species/children-of-the-embodied-gods/orcs/orcs.md)
+        - {glob: people/orcs/}
+    - [Fey](species/children-of-the-divine/fey/fey.md)
+        - {glob: people/fey}
+    - Other Nonhumans
+        - {glob: people/other-nonhumans;people/giants, exclude: umli.md}
+    - Extraplanar Powers
+        - {glob: people/extraplanar-powers/}
+    - Organizations
+        - {glob: groups/}
+- [Gazetteer](campaigns/player-s-guide.md)
+    - [World of Taelgar](gazetteer/geography-of-taeglar.md)
+        - {glob: gazetteer, exclude: endless-ocean.md;green-sea.md;geography-of-taelgar.md;gazetteer.md}
+        - [Endless Ocean](gazetteer/endless-ocean.md)
+        - [Green Sea](gazetteer/green-sea.md)
     - Other Planes
         - [Feywild](cosmology/multiverse/echo-realms/feywild/feywild.md)
             - {glob: cosmology/multiverse/echo-realms/feywild/}
@@ -62,15 +80,46 @@
         - [Energy Realms](cosmology/multiverse/energy-realms/energy-realms.md)
             - {glob: cosmology/multiverse/energy-realms/}
         - [Mirror Realm](cosmology/multiverse/echo-realms/mirror-realm.md)
-- History and Events
+    - Religion
+        - [Mos Numena](cosmology/religions/mos-numena.md)
+            - Gods
+                - {glob: cosmology/gods/incorporeal-gods/mos-numena/}
+            - [Festivals](time/holidays-and-festivals/mos-numena-feast-days.md)
+                - [Festival of the Bridge](time/holidays-and-festivals/festival-of-the-bridge.md)
+                - [Miracle of the Mist](time/holidays-and-festivals/festival-of-the-miracle-of-the-mist.md)
+                - [Pyravela](time/holidays-and-festivals/pyravela.md)
+                - [Viatela](time/holidays-and-festivals/viatela.md)
+        - [Dunmari Faith](cosmology/religions/five-siblings/five-siblings.md)
+            - {glob: cosmology/religions/five-siblings/, exclude: five-siblings.md}
+            - Gods
+                - [Sampa](cosmology/gods/high-gods/sampa.md)
+                - [Shurat](cosmology/gods/high-gods/shurat.md)
+                - {glob: cosmology/gods/incorporeal-gods/dunmari/}
+            - [Festivals](time/holidays-and-festivals/dunmari-festivals/dunmari-festivals.md)
+                - {glob: time/holidays-and-festivals/dunmari-festivals, exclude: dunmari-festivals.md}
+        - [Kestavo](cosmology/religions/kestavo.md)
+            - [Ako](cosmology/gods/high-gods/ako.md)
+            - {glob: cosmology/gods/kestavo/}
+        - [Northern Folk Religion](cosmology/religions/tanshi.md)
+            - [Anida](cosmology/gods/high-gods/anida.md)
+            - {glob: cosmology/gods/tanshi/}
+        - Other Gods
+            - [High Gods](cosmology/gods/high-gods/high-gods.md)
+                - {glob: cosmology/gods/high-gods/, exclude: sampa.md;shurat.md;ako.md;anida.md}
+            - Embodied Gods
+                - {glob: cosmology/gods/embodied-gods/}
+            - Incorporeal Gods
+                - [Kaikkea](cosmology/gods/incorporeal-gods/kaikkea.md)
+                - [Sarqon](cosmology/gods/incorporeal-gods/sarqon.md)
+            - [The Fox and Hunter](cosmology/gods/demigods/fox-and-hunter.md)
+- History
+    - [Calendar Eras](time/calendar-eras.md)
+    - {glob: history/}
+    - People
+        - {glob: people/historical-figures}
     - Events
-        - {glob: events/}
-    - History
-        - {glob: history/;people/historical-figures}
+        - {glob: events/;flatten}
     - Primary Sources
         - {glob: primary-sources/}
-- Cosmology
-    - Gods
-        - {glob: cosmology/gods}
-    - Religions
-        - {glob: cosmology/religions}
+
+
