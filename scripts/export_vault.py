@@ -455,14 +455,28 @@ def build_page_title(fm, file_name):
 configfile = "website.json"
 with open((configfile), 'r', 2048, "utf-8") as f:
     data = json.load(f)
+
+    ## Paths ##
     source_dir = Path(data["source"])
     output_dir = Path(data["build"])
-    target_date = data.get("export_date", None)
-    target_campaign = data.get("campaign", None)
+    css_source_dir = Path(data["css_extras_source"])
+    css_dest_dir = Path(data["css_extras_dest"])
+    site_img_source_dir = Path(data["site_images_source"])
+    site_img_dest_dir = Path(data["site_images_dest"])
+
+    ## Templates ##
+    literate_nav_source = data.get("literate_nav_source", None)
+    literate_nav_dest = data.get("literate_nav_dest", "toc.md")
+    home_source = data.get("home_source", None)
+    home_dest = data.get("home_dest", "index.md")
+
+    ## Build process config
     slugify_files = data.get("slugify", True)
     clean_build_dir = data.get("clean_build", True)
-    home_file = data.get("home_source", None)
-    literate_nav = data.get("literate_nav", None)
+
+    ## Procesing config
+    target_date = data.get("export_date", None)
+    target_campaign = data.get("campaign", None)
     keep_only_rooted = data.get("keep_only_rooted", False)
     hide_tocs_tags = data.get("hide_toc_tags", [])
     exclude_tildes = data.get("exclude_tildes", True)
@@ -480,9 +494,15 @@ if clean_build_dir:
 
 output_dir.mkdir(parents=True, exist_ok=True)
 
-if home_file:
-    print("Copying " + home_file + " to " + str(source_dir) + "/index.md")
-    shutil.copy(Path(home_file), source_dir / "index.md")
+if home_source:
+    print("Copying " + home_source + " to " + str(source_dir) + home_dest)
+    shutil.copy(Path(home_source), source_dir / Path(home_dest))
+
+print("Copying CSS and other site extras")
+css_dest_dir.mkdir(parents=True, exist_ok=True)
+site_img_dest_dir.mkdir(parents=True, exist_ok=True)
+shutil.copytree(css_source_dir, css_dest_dir, dirs_exist_ok=True)
+shutil.copytree(site_img_source_dir, site_img_dest_dir, dirs_exist_ok=True)
 
 source_files = build_md_list(source_dir, keep_only_rooted)
 metadata = {}
@@ -554,12 +574,12 @@ for file_name in source_files:
  
 ## generate literate nav
 
-if literate_nav:
-    print("Generating nav file from template " + literate_nav)
-    nav_generator = MkDocsNavigationGenerator(literate_nav, metadata, output_dir)
+if literate_nav_source:
+    print("Generating nav file from template " + literate_nav_source)
+    nav_generator = MkDocsNavigationGenerator(literate_nav_source, metadata, output_dir)
     processed_template = nav_generator.process_template()
 
-    nav_path = output_dir / "toc.md"
+    nav_path = output_dir / Path(literate_nav_dest)
 
-    with open(nav_path, 'w') as output_file:
+    with open(nav_path, 'w', -1, "utf8") as output_file:
         output_file.write('\n'.join(processed_template))
