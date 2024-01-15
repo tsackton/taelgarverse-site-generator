@@ -2,6 +2,13 @@
   max-width: 1440px; 
 }
 
+
+.ext-map-container {
+  height: 600px;
+  max-width: 100%;
+  max-height: 100%;
+}
+
 /* :root {
   --md-primary-fg-color:        #A51C30;
   --md-primary-fg-color--light: #ec8f9c;
@@ -21,6 +28,21 @@
   color: #EF5552 !important;
 }
 /* Site-wide link color */
+
+.md-typeset .ext-one-column {
+  background: lightgray;
+  grid-template-columns: 1fr;
+}
+
+.md-typeset .ext-narrow-margin {
+  margin-top: 0.25rem;
+  margin-bottom: 0.25rem;
+}
+
+.md-typeset h1 {
+  margin-bottom: 0.15rem;
+}
+
 
 /* Grid */
 
