@@ -40,5 +40,7 @@ The `export_vault.py` script has a number of configuration options, that can be 
 - "hide_toc_tags": list, if set will set hide: ["toc"] on pages that have a tag in the hide_toc_tags lists; overwrites `hide:` if set in the source directory
 - "unnamed_files": processing choice for unnamed files (~ in file name / title). can be one of "unlist" or "skip", if blank code does nothing special with these files
 - "stub_files": processing choice for stub files (consistent of nothing but blank lines, h1, and the word stub/(stub)); see above
+- "ignore_file": a path to a file using gitignore syntax; files that match this spec will be skipped prior to link generation and not copied to docs
+- "abs_path_root": a string, e.g., "/", or "/taelgarverse/" prepended to leaflet image paths to make leaflet maps work
 
 The `export_vault.py` script does not manage theme overrides; these are generally not kept in the `docs` directory and so won't be deleted by `clean_build`. 
