@@ -1,5 +1,7 @@
 ---
 rooted: True
+hide: ['navigation']
+template: home.html
 ---
 
 This is the "Campaign Bible" for Taelgar, a collection of notes, information, and facts about the world that have been introduced in play. 

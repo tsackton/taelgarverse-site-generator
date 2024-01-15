@@ -475,7 +475,8 @@ print("Output: " + str(output_dir))
 
 if clean_build_dir:
     print("Cleaning output directory " + str(output_dir) + " before building")
-    shutil.rmtree(output_dir)
+    if output_dir.exists():
+        shutil.rmtree(output_dir)
 
 output_dir.mkdir(parents=True, exist_ok=True)
 
