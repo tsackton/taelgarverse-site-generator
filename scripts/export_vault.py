@@ -501,8 +501,8 @@ if home_source:
 print("Copying CSS and other site extras")
 css_dest_dir.mkdir(parents=True, exist_ok=True)
 site_img_dest_dir.mkdir(parents=True, exist_ok=True)
-shutil.copytree(css_source_dir, css_dest_dir, dirs_exist_ok=True)
-shutil.copytree(site_img_source_dir, site_img_dest_dir, dirs_exist_ok=True)
+shutil.copytree(css_source_dir, source_dir / css_dest_dir, dirs_exist_ok=True)
+shutil.copytree(site_img_source_dir, source_dir / site_img_dest_dir, dirs_exist_ok=True)
 
 source_files = build_md_list(source_dir, keep_only_rooted)
 metadata = {}
