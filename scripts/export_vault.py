@@ -7,6 +7,7 @@ import pathspec
 from datetime import datetime
 from pathlib import Path
 from slugify import slugify
+from PIL import Image
 
 ###############################
 ####### CONSTANTS #############
@@ -252,7 +253,7 @@ class WikiLinkReplacer:
         rel_link_url = rel_link_url.replace("\\", "/")
 
         # define image link as: filename has is xxx.png, xxx.jpg, xxx.jpeg, xxx.gif, or alias = right or left, or width or height is not empty
-        image_link = re.search(r".*\.(png|jpg|jpeg|gif)$", filename) or alias in ["right", "left"] or width or height
+        image_link = re.search(r".*\.(png|jpg|jpeg|gif|heic)$", filename) or alias in ["right", "left"] or width or height
 
         if image_link:
             # alias becomes align = right or left
@@ -440,7 +441,7 @@ def clean_code_blocks(s, template_dir, config, source_files, abs_path_root):
                         page_path = source_files[image_file_name]['file']
                     else:
                         page_path = source_files[image_file_name]['orig']
-                    template_content["image"] = abs_path_root + str(page_path)
+                    template_content["image"] = abs_path_root + str(page_path.as_posix())
                 return(template_text.format(**template_content))
             else:
                 return ""
@@ -624,6 +625,9 @@ with open((configfile), 'r', 2048, "utf-8") as f:
 
     ## Other
     abs_path_root = data.get("abs_path_root", "/")
+    resize_images = data.get("resize_images", True)
+    max_height = data.get("max_height", 1600)
+    max_width = data.get("max_width", 1600)
 
 ## SOURCE is input files
 ## OUTPUT is output directory
@@ -668,7 +672,22 @@ for file_name in source_files:
     if not source_files[file_name]['process']:
         # just straight copy
         new_file_path.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy((source_dir / source_files[file_name]["orig"]), new_file_path)
+        # special processing for image files
+        if source_files[file_name]['orig'].suffix in ['.png', '.jpg', '.jpeg', '.gif', '.heic'] and resize_images and all(substring not in source_files[file_name]['orig'].stem for substring in ["fullsize", "map", "region"]):
+            # resize images
+            img = Image.open((source_dir / source_files[file_name]["orig"]))
+            width, height = img.size
+            if width > max_width or height > max_height:
+                if width >= height:
+                    new_width = max_width
+                    new_height = int(height * (max_width / width))
+                else:
+                    new_height = max_height
+                    new_width = int(width * (max_height / height))
+                img = img.resize((new_width, new_height))
+            img.save(new_file_path)
+        else:
+            shutil.copy((source_dir / source_files[file_name]["orig"]), new_file_path)
         continue
 
     # Open the input file
