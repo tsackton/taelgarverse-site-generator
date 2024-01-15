@@ -554,7 +554,7 @@ for file_name in source_files:
     if tags and hide_tocs_tags:
         clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
         if any(tag in clean_tags for tag in hide_tocs_tags):
-            fm["hide"] = ["toc"]
+            fm["hide_toc"] = True
 
     basename = Path(new_file_path).stem
 
