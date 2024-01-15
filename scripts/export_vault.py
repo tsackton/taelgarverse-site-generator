@@ -24,6 +24,21 @@ WIKILINK_RE = r"""\[\[(.*?)(\#.*?)?(?:\|([\D][^\|\]]+[\d]*))?(?:\|(\d+)(?:x(\d+)
 EXCLUSIONS = ['A', 'An', 'The', 'And', 'But', 'Or', 'For', 'Nor', 'As', 'At', 'By', 'For', 'From', 'In', 'Into', 'Near', 'Of', 'On', 'Onto', 'To', 'With', 'De', 'About']
 ALWAYS_UPPPER = ['DR']
 
+# months - defined here so that it can be extended / changed if desired
+DR_MONTHS = {
+    1: 'Jan',
+    2: 'Feb',
+    3: 'Mar',
+    4: 'Apr',
+    5: 'May',
+    6: 'Jun',
+    7: 'Jul',
+    8: 'Aug',
+    9: 'Sep',
+    10: 'Oct',
+    11: 'Nov',
+    12: 'Dec'
+}
 ################################
 ##### FUNCTIONS - MAY MOVE #####
 ################################
@@ -381,6 +396,49 @@ def strip_date_content(s, input_date_str):
     # Replace matching sections
     return re.sub(pattern, replace_func, s, flags=re.DOTALL)
 
+def clean_inline_tags(s):
+    def date_to_string(match):
+        inline_tag = match.group(2)
+        tag_value = match.group(3)
+        if inline_tag == "DR":
+            year, month, day = tag_value.split("-")
+            if month:
+                month = DR_MONTHS[int(month)]
+            if year and month and day:
+                return(f'{month} {day}, {year} DR')
+            if year and month:
+                return(f'{month} {year} DR')
+            if year:
+                return(f'{year} DR')
+        return inline_tag + " " + tag_value
+    
+    pattern = r'(\((\w+)::\s+(.\S+)\s*\))'
+    return re.sub(pattern, date_to_string, s, flags=re.DOTALL)
+
+def clean_code_blocks(s, template_dir, config, source_files):
+    def codeblock_cleaner(match):
+        if match.group(2):
+            # code block
+            codeblock_type, codeblock_content = match.group(2).partition('\n')
+            codeblock_template = Path(template_dir) / Path(codeblock_type + ".html")
+            if codeblock_template.is_file():
+                template_text = open(codeblock_template, 'r').read()
+                template_content = yaml.safe_load(codeblock_content)
+                if codeblock_type == "leaflet":
+                    ## fix image path
+                    image_file_name = template_content["image"]
+                    if config.get("slugify", True):
+                        page_path = source_files[image_file_name]['file']
+                    else:
+                        page_path = source_files[image_file_name]['orig']
+                    template_content["image"] = "/" + str(page_path)
+                return(template_text.format(**template_content))
+            else:
+                return ""
+
+    pattern = r'(```([^`]+)```|~~~([^~]+)~~~|`([^`]*)`)'
+    return re.sub(pattern, codeblock_cleaner, s, flags=re.DOTALL)
+
 def build_md_list(path, keep_only_rooted=False):
     """
     Given a path, makes a dictionary of all the markdown files in the path.
@@ -469,6 +527,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     literate_nav_dest = data.get("literate_nav_dest", "toc.md")
     home_source = data.get("home_source", None)
     home_dest = data.get("home_dest", "index.md")
+    codeblock_template_dir = data.get("codeblock_template_dir", None)
 
     ## Build process config
     slugify_files = data.get("slugify", True)
@@ -536,47 +595,60 @@ for file_name in source_files:
     else:
         page_path = source_files[file_name]['orig']
 
-
     # clean up markdown text
-    new_text = strip_date_content(text, target_date) if target_date else text
-    new_text = strip_campaign_content(text, target_campaign) if target_campaign else new_text
-    new_text = strip_comments(text) if data.get("strip_comments") else new_text
-    new_text = re.sub(WIKILINK_RE, WikiLinkReplacer(output_dir, page_path, source_files, slugify_files), new_text) if data.get("fix_links") else new_text
+    if target_date:
+        text = strip_date_content(text, target_date)
+    if target_campaign:
+        text = strip_campaign_content(text, target_campaign)
+    if data.get("strip_comments"):
+        text = strip_comments(text)
+    if data.get("clean_inline_tags", True):
+        text = clean_inline_tags(text)
+    if clean_code_blocks:
+        text = clean_code_blocks(text, codeblock_template_dir, data, source_files)
 
-    # clean up frontmatter
+    if data.get("fix_links") :
+        text = re.sub(WIKILINK_RE, WikiLinkReplacer(output_dir, page_path, source_files, slugify_files), text)
+
+
+    ## clean up frontmatter ##
+
+    # add title #
     page_title = build_page_title(fm, file_name)
     if isinstance(fm, dict):
         fm["title"] = page_title
     else:
         fm = { "title": page_title }
 
-    # exclude toc from selected tags
+    # exclude toc from selected tags #
     tags = fm.get("tags", [])
     if tags and hide_tocs_tags:
         clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
         if any(tag in clean_tags for tag in hide_tocs_tags):
             fm["hide_toc"] = True
 
+    # exclude backlinks from selected tags #
     if tags and hide_backlinks_tags:
         clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
         if any(tag in clean_tags for tag in hide_tocs_tags):
             fm["hide_backlinks"] = True
 
+    # if both toc and backlink are hidden, hide entire toc nav #
     if fm.get("hide_backlinks", False) and fm.get("hide_toc", False):
         fm["hide"] = ["toc"]
-        
-    basename = Path(new_file_path).stem
 
+    # unlist unnamed files #
     if exclude_tildes and file_name.startswith("~"):
         if "unlisted" in fm:
             continue
         fm["unlisted"] = True 
 
+    basename = Path(new_file_path).stem
     metadata[basename] = fm
     
     # write out new file
     new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
-    output = "---\n" + new_frontmatter + "---\n" + new_text
+    output = "---\n" + new_frontmatter + "---\n" + text
 
     with open(new_file_path, 'w', 2048, "utf-8") as output_file:
         output_file.writelines(output)

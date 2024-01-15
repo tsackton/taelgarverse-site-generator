@@ -1,6 +1,7 @@
 {
     "source": "taelgar",
     "build": "docs",
+    "codeblock_template_dir": "taelgarverse-site-generator/templates/",
     "home_source": "taelgarverse-site-generator/templates/home.md",
     "home_dest": "index.md",
     "literate_nav_source": "taelgarverse-site-generator/templates/toc.md",
@@ -17,5 +18,6 @@
     "clean_build": true,    
     "keep_only_rooted": false,
     "hide_toc_tags": ["person", "item"],
+    "hide_backlinks_tags": [],
     "exclude_tildes": true
 }
