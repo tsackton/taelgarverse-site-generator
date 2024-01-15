@@ -21,6 +21,7 @@ The `export_vault.py` script has a number of configuration options, that can be 
 
 - "source": the source directory containing input files to be converted
 - "build": the directory to put output in, which should be "docs" to work with mkdocs
+- "codeblock_template_dir": the directory where html templates to replace codeblocks are stored (currently only leaflet is implemented; mermaid is passed unaltered, everythign else is removed
 - "home_source": the template for the home page
 - "home_dest": the file to be created for the home page, in `"build"`, usually `index.md`
 - "literate_nav_source": a template to generate the literate nav from
@@ -37,6 +38,7 @@ The `export_vault.py` script has a number of configuration options, that can be 
 - "clean_build": logical, if true, will delete all files in `build` directory before starting processing
 - "keep_only_rooted": logical, if true, will only process markdown files with rooted: True set in frontmatter
 - "hide_toc_tags": list, if set will set hide: ["toc"] on pages that have a tag in the hide_toc_tags lists; overwrites `hide:` if set in the source directory
-- "exclude_tildes": logical, if true will exclude unnamed (~Temp Name~) files from nav
+- "unnamed_files": processing choice for unnamed files (~ in file name / title). can be one of "unlist" or "skip", if blank code does nothing special with these files
+- "stub_files": processing choice for stub files (consistent of nothing but blank lines, h1, and the word stub/(stub)); see above
 
 The `export_vault.py` script does not manage theme overrides; these are generally not kept in the `docs` directory and so won't be deleted by `clean_build`. 

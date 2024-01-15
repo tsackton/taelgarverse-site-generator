@@ -19,5 +19,6 @@
     "keep_only_rooted": false,
     "hide_toc_tags": ["person", "item"],
     "hide_backlinks_tags": [],
-    "exclude_tildes": true
+    "unnamed_files": "unlist",
+    "stub_files": "skip"
 }

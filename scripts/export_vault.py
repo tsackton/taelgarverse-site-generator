@@ -441,6 +441,30 @@ def clean_code_blocks(s, template_dir, config, source_files):
     pattern = r'(```([^`]+)```|~~~([^~]+)~~~|`([^`]*)`)'
     return re.sub(pattern, codeblock_cleaner, s, flags=re.DOTALL)
 
+def count_relevant_lines(text):
+    """
+    Counts the number of lines in a string that are not empty, do not start with a header (^#),
+    and do not contain only the word "stub" or "(stub)".
+    
+    Args:
+    text (str): A multi-line string representing the text file content.
+
+    Returns:
+    int: The number of relevant lines.
+    """
+    # Split the text into lines
+    lines = text.split('\n')
+
+    # Define the criteria for a line to be excluded
+    def is_excluded(line):
+        return (line.strip() == '' or            # Check for empty lines
+                line.strip() in ['stub', '(stub)'] or  # Check for lines containing only 'stub' or '(stub)'
+                line.lstrip().startswith('#'))  # Check for lines starting with '#', ignoring leading whitespace
+
+    # Count the lines that are not excluded
+    relevant_lines = [line for line in lines if not is_excluded(line)]
+    return len(relevant_lines)
+
 def build_md_list(path, keep_only_rooted=False):
     """
     Given a path, makes a dictionary of all the markdown files in the path.
@@ -478,6 +502,11 @@ def build_md_list(path, keep_only_rooted=False):
             slug = Path(*[slugify(part) for part in relative_path_parents]) / slug_file_name
             orig = file.relative_to(path).parent / file.name
 
+            # check if unnamed
+            unnamed = True if orig_file_name.startswith("~") else False
+
+            stub = False
+
             # get text and frontmatter
             add_file = True
             text = ""
@@ -485,9 +514,15 @@ def build_md_list(path, keep_only_rooted=False):
             if process:
                 fm, text = parse_markdown_file(file)
                 add_file = True if not keep_only_rooted else isinstance(fm, dict) and fm.get("rooted", False)
+                if fm.get("name"):
+                    unnamed = True if fm.get("name").startswith("~") else unnamed
+                
+                # check if stub
+                if count_relevant_lines(text) < 2:
+                    stub = True
             
             if add_file:
-                md_files[orig_file_name] = { 'file': slug, 'orig': orig, 'process': process, 'text': text, 'fm': fm }
+                md_files[orig_file_name] = { 'file': slug, 'orig': orig, 'process': process, 'text': text, 'fm': fm, 'unnamed': unnamed, 'stub': stub }
 
     return md_files
 
@@ -541,7 +576,10 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     keep_only_rooted = data.get("keep_only_rooted", False)
     hide_tocs_tags = data.get("hide_toc_tags", [])
     hide_backlinks_tags = data.get("hide_backlinks_tags", [])
-    exclude_tildes = data.get("exclude_tildes", True)
+
+    ## Files to keep / delete
+    unnamed_files = data.get("unnamed_files", None)
+    stub_files = data.get("stub_files", None)
 
 ## SOURCE is input files
 ## OUTPUT is output directory
@@ -637,11 +675,15 @@ for file_name in source_files:
     if fm.get("hide_backlinks", False) and fm.get("hide_toc", False):
         fm["hide"] = ["toc"]
 
-    # unlist unnamed files #
-    if exclude_tildes and file_name.startswith("~"):
-        if "unlisted" in fm:
-            continue
-        fm["unlisted"] = True 
+    # process stubs and unnamed files #
+    if source_files[file_name]['unnamed'] and unnamed_files and unnamed_files == "skip":
+        continue
+    if source_files[file_name]['stub'] and stub_files and stub_files == "skip":
+        continue
+    if source_files[file_name]['unnamed'] and unnamed_files and unnamed_files == "unlist":
+        fm["unlisted"] = True
+    if source_files[file_name]['stub'] and stub_files and stub_files == "unlist":
+        fm["unlisted"] = True
 
     basename = Path(new_file_path).stem
     metadata[basename] = fm
