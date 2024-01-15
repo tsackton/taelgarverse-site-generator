@@ -239,7 +239,8 @@ class WikiLinkReplacer:
                 if alias:
                     return alias
                 else:
-                    if not "." in filename:
+                    if not "." in filename and not "[" in filename:
+                        # prevents stripping nested [] from bounds in leaflet blocks
                         return filename
                     else:
                         return whole_link
@@ -421,7 +422,7 @@ def clean_inline_tags(s):
     pattern = r'(\((\w+)::\s*(\S+)\s*\))'
     return re.sub(pattern, date_to_string, s, flags=re.DOTALL)
 
-def clean_code_blocks(s, template_dir, config, source_files):
+def clean_code_blocks(s, template_dir, config, source_files, abs_path_root):
     def codeblock_cleaner(match):
         if match.group(2):
             # code block
@@ -439,7 +440,7 @@ def clean_code_blocks(s, template_dir, config, source_files):
                         page_path = source_files[image_file_name]['file']
                     else:
                         page_path = source_files[image_file_name]['orig']
-                    template_content["image"] = "/" + str(page_path)
+                    template_content["image"] = abs_path_root + str(page_path)
                 return(template_text.format(**template_content))
             else:
                 return ""
@@ -621,6 +622,9 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     stub_files = data.get("stub_files", None)
     ignore_file = data.get("ignore_file", None)
 
+    ## Other
+    abs_path_root = data.get("abs_path_root", "/")
+
 ## SOURCE is input files
 ## OUTPUT is output directory
 
@@ -678,7 +682,7 @@ for file_name in source_files:
         page_path = source_files[file_name]['orig']
         
     if clean_code_blocks:
-        text = clean_code_blocks(text, codeblock_template_dir, data, source_files)
+        text = clean_code_blocks(text, codeblock_template_dir, data, source_files, abs_path_root)
     if data.get("fix_links") :
         text = re.sub(WIKILINK_RE, WikiLinkReplacer(output_dir, page_path, source_files, slugify_files), text)
 
