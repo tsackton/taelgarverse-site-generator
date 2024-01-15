@@ -421,6 +421,8 @@ def clean_code_blocks(s, template_dir, config, source_files):
             # code block
             codeblock_type, sep, codeblock_content = match.group(2).partition('\n')
             codeblock_template = Path(template_dir) / Path(codeblock_type.strip() + ".html")
+            if codeblock_type.strip() == "mermaid":
+                return match.group(0)
             if codeblock_template.is_file():
                 template_text = open(codeblock_template, 'r').read()
                 template_content = yaml.safe_load(codeblock_content)
