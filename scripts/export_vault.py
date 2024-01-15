@@ -440,7 +440,7 @@ def clean_code_blocks(s, template_dir, config, source_files, abs_path_root):
                         page_path = source_files[image_file_name]['file']
                     else:
                         page_path = source_files[image_file_name]['orig']
-                    template_content["image"] = abs_path_root + str(page_path)
+                    template_content["image"] = abs_path_root + str(page_path.as_posix())
                 return(template_text.format(**template_content))
             else:
                 return ""
