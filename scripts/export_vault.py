@@ -320,18 +320,23 @@ def parse_markdown_file(file_path):
     :return: A tuple containing a dictionary of the frontmatter and a string of the markdown text.
     """
     with open(file_path, 'r', encoding='utf-8') as file:
-        content = file.read()
+        lines = file.readlines()
 
-    # Split the content at the triple dashes
-    parts = content.split('---')
-
-    # Check if there is frontmatter
-    if len(parts) < 3:
-        return {}, content
-
-    frontmatter = yaml.safe_load(parts[1])  # Parse the frontmatter
-    markdown_text = '---'.join(parts[2:])   # Join back the remaining parts
-
+    # Check if the file starts with frontmatter (triple dashes)
+    if lines and lines[0].strip() == '---':
+        # Try to find the second set of triple dashes
+        try:
+            end_frontmatter_idx = lines[1:].index('---\n') + 1
+        except ValueError:
+            # Handle the case where the closing triple dashes are not found
+            frontmatter = {}
+            markdown_text = ''.join(lines)
+        else:
+            frontmatter = yaml.safe_load(''.join(lines[1:end_frontmatter_idx]))
+            markdown_text = ''.join(lines[end_frontmatter_idx + 1:])
+    else:
+        frontmatter = {}
+        markdown_text = ''.join(lines)
     return frontmatter, markdown_text
 
 def strip_comments(s):
@@ -505,24 +510,47 @@ def build_md_list(path, keep_only_rooted=False):
             # check if unnamed
             unnamed = True if orig_file_name.startswith("~") else False
 
-            stub = False
-
             # get text and frontmatter
             add_file = True
             text = ""
             fm = {}
             if process:
                 fm, text = parse_markdown_file(file)
-                add_file = True if not keep_only_rooted else isinstance(fm, dict) and fm.get("rooted", False)
+                if not isinstance(fm, dict):
+                    print(f"Error parsing frontmatter for {file}")
+                    print(f"Frontmatter: {fm}; Content: {text}")
+                add_file = False if keep_only_rooted and fm.get("rooted", False) else add_file
                 if fm.get("name"):
                     unnamed = True if fm.get("name").startswith("~") else unnamed
+
+                # clean up markdown text
+                if target_date:
+                    text = strip_date_content(text, target_date)
+                if target_campaign:
+                    text = strip_campaign_content(text, target_campaign)
+                if data.get("strip_comments"):
+                    text = strip_comments(text)
+                if data.get("clean_inline_tags", True):
+                    text = clean_inline_tags(text)
                 
-                # check if stub
-                if count_relevant_lines(text) < 2:
-                    stub = True
-            
+                # check if file is stub after processing #
+                if count_relevant_lines(text) < 1:
+                    is_stub = True
+                else:
+                    is_stub = False
+
+                # process stubs and unnamed files #
+                if unnamed and unnamed_files and unnamed_files == "skip":
+                    add_file = False
+                if is_stub and stub_files and stub_files == "skip":
+                    add_file = False
+                if unnamed and unnamed_files and unnamed_files == "unlist":
+                    fm["unlisted"] = True
+                if is_stub and stub_files and stub_files == "unlist":
+                    fm["unlisted"] = True
+
             if add_file:
-                md_files[orig_file_name] = { 'file': slug, 'orig': orig, 'process': process, 'text': text, 'fm': fm, 'unnamed': unnamed, 'stub': stub }
+                md_files[orig_file_name] = { 'file': slug, 'orig': orig, 'process': process, 'text': text, 'fm': fm, 'unnamed': unnamed }
 
     return md_files
 
@@ -613,14 +641,12 @@ for file_name in source_files:
         new_file_path = output_dir / source_files[file_name]["file"]
     else:
         new_file_path = output_dir / source_files[file_name]["orig"]
-    
-    # Create directories if they don't exist
-    new_file_path.parent.mkdir(parents=True, exist_ok=True)
-    
+        
     # Copy files that won't be processed
     if not source_files[file_name]['process']:
         # just straight copy
-        shutil.copy(source_dir / source_files[file_name]["orig"], new_file_path)
+        new_file_path.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copy((source_dir / source_files[file_name]["orig"]), new_file_path)
         continue
 
     # Open the input file
@@ -632,19 +658,9 @@ for file_name in source_files:
         page_path = source_files[file_name]['file']
     else:
         page_path = source_files[file_name]['orig']
-
-    # clean up markdown text
-    if target_date:
-        text = strip_date_content(text, target_date)
-    if target_campaign:
-        text = strip_campaign_content(text, target_campaign)
-    if data.get("strip_comments"):
-        text = strip_comments(text)
-    if data.get("clean_inline_tags", True):
-        text = clean_inline_tags(text)
+        
     if clean_code_blocks:
         text = clean_code_blocks(text, codeblock_template_dir, data, source_files)
-
     if data.get("fix_links") :
         text = re.sub(WIKILINK_RE, WikiLinkReplacer(output_dir, page_path, source_files, slugify_files), text)
 
@@ -675,20 +691,11 @@ for file_name in source_files:
     if fm.get("hide_backlinks", False) and fm.get("hide_toc", False):
         fm["hide"] = ["toc"]
 
-    # process stubs and unnamed files #
-    if source_files[file_name]['unnamed'] and unnamed_files and unnamed_files == "skip":
-        continue
-    if source_files[file_name]['stub'] and stub_files and stub_files == "skip":
-        continue
-    if source_files[file_name]['unnamed'] and unnamed_files and unnamed_files == "unlist":
-        fm["unlisted"] = True
-    if source_files[file_name]['stub'] and stub_files and stub_files == "unlist":
-        fm["unlisted"] = True
-
     basename = Path(new_file_path).stem
     metadata[basename] = fm
-    
+
     # write out new file
+    new_file_path.parent.mkdir(parents=True, exist_ok=True)
     new_frontmatter = yaml.dump(fm, sort_keys=False, default_flow_style=None, allow_unicode=True, Dumper=CustomDumper, width=2000)
     output = "---\n" + new_frontmatter + "---\n" + text
 
