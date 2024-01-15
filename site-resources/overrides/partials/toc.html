@@ -29,9 +29,10 @@
     Backlinks
   </label>
   <ul class="md-nav__list" data-md-component="backlinks" data-md-scrollfix>
+    {% set base_path = config.base_path if config.base_path is not none else "/" %}
     {% for backlink in backlinks %}
     <li class="md-nav__item">
-      <a href="/{{ backlink.url }}" class="md-nav__link">
+      <a href="{{ base_path }}{{ backlink.url }}" class="md-nav__link">
         <span class="md-ellipsis">
           {{ backlink.title }}
         </span>
