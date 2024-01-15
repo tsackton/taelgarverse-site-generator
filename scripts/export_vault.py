@@ -270,11 +270,7 @@ class WikiLinkReplacer:
             else:
                 image_params = ""
             link = f'[{alias}]({rel_link_url}){image_params}'
-<<<<<<< HEAD
-            linked_images.append(str(Path(rel_link_url).resolve().relative_to(output_dir)))
-=======
-            linked_images.append(rel_link_url.replace("../", ""))
->>>>>>> parent of 7a59ff1 (fix windows bug in delete unlinked images, hopefully)
+            linked_images.append(rel_link_url.replace("../", "").replace("..\\", ""))
                                
         else:
             if filename:
