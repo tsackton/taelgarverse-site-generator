@@ -270,7 +270,7 @@ class WikiLinkReplacer:
             else:
                 image_params = ""
             link = f'[{alias}]({rel_link_url}){image_params}'
-            linked_images.append(str(rel_link_url.resolve().relative_to(output_dir)))
+            linked_images.append(str(Path(rel_link_url).resolve().relative_to(output_dir)))
                                
         else:
             if filename:
