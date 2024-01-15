@@ -270,7 +270,7 @@ class WikiLinkReplacer:
             else:
                 image_params = ""
             link = f'[{alias}]({rel_link_url}){image_params}'
-            linked_images.append(rel_link_url.replace("../", "").replace("..\\", ""))
+            linked_images.append(rel_link_url.replace("../", ""))
                                
         else:
             if filename:
@@ -444,7 +444,7 @@ def clean_code_blocks(s, template_dir, config, source_files, abs_path_root):
                         page_path = source_files[image_file_name]['file']
                     else:
                         page_path = source_files[image_file_name]['orig']
-                    linked_images.append(str(page_path))
+                    linked_images.append(str(page_path.as_posix()))
                     template_content["image"] = abs_path_root + str(page_path.as_posix())
                 return(template_text.format(**template_content))
             else:
@@ -688,7 +688,7 @@ for file_name in source_files:
         new_file_path = output_dir / source_files[file_name]["orig"]
     
     if new_file_path.suffix in ['.png', '.jpg', '.jpeg', '.gif']:
-        all_images.append(str(new_file_path.relative_to(output_dir)))
+        all_images.append(str(new_file_path.relative_to(output_dir).as_posix()))
     
     # Copy files that won't be processed
     if not source_files[file_name]['process']:
