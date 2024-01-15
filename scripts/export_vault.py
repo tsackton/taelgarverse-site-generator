@@ -270,7 +270,11 @@ class WikiLinkReplacer:
             else:
                 image_params = ""
             link = f'[{alias}]({rel_link_url}){image_params}'
+<<<<<<< HEAD
             linked_images.append(str(Path(rel_link_url).resolve().relative_to(output_dir)))
+=======
+            linked_images.append(rel_link_url.replace("../", ""))
+>>>>>>> parent of 7a59ff1 (fix windows bug in delete unlinked images, hopefully)
                                
         else:
             if filename:
@@ -687,7 +691,7 @@ for file_name in source_files:
     else:
         new_file_path = output_dir / source_files[file_name]["orig"]
     
-    if new_file_path.suffix in ['.png', '.jpg', '.jpeg', '.gif', ".heic"]:
+    if new_file_path.suffix in ['.png', '.jpg', '.jpeg', '.gif']:
         all_images.append(str(new_file_path.relative_to(output_dir)))
     
     # Copy files that won't be processed
