@@ -487,7 +487,7 @@ def parse_ignore_file(file_path):
         spec = pathspec.PathSpec.from_lines('gitwildmatch', file)
     return spec
 
-def build_md_list(path, ignore_spec=None):
+def build_md_list(path, keep_only_rooted=False, ignore_spec=None):
     """
     Given a path, makes a dictionary of all the markdown files in the path.
     The dictionary has the original file name as the key, and a dict with two keys as the value:
@@ -540,6 +540,7 @@ def build_md_list(path, ignore_spec=None):
                 if not isinstance(fm, dict):
                     print(f"Error parsing frontmatter for {file}")
                     print(f"Frontmatter: {fm}; Content: {text}")
+                add_file = False if keep_only_rooted and fm.get("rooted", False) else add_file
                 if fm.get("name"):
                     unnamed = True if fm.get("name").startswith("~") else unnamed
 
@@ -568,16 +569,6 @@ def build_md_list(path, ignore_spec=None):
                     fm["unlisted"] = True
                 if is_stub and stub_files and stub_files == "unlist":
                     fm["unlisted"] = True
-                
-                # check for future dated and campaign exclusions
-                if skip_future_dated and fm.get("activeYear", None):
-                    add_file = False if parse_date(target_date) < parse_date(fm["activeYear"]) else add_file
-                if fm.get("excludePublish", None):
-                    campaign_exclusion = fm["excludePublish"] if isinstance(fm["excludePublish"], list) else list(fm["excludePublish"])
-                    if "all" in campaign_exclusion:
-                        add_file = False
-                    if target_campaign.lower() in [item.lower() for item in campaign_exclusion]:
-                        add_file = False
 
             if add_file:
                 md_files[orig_file_name] = { 'file': slug, 'orig': orig, 'process': process, 'text': text, 'fm': fm, 'unnamed': unnamed }
@@ -631,6 +622,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     ## Procesing config
     target_date = data.get("export_date", None)
     target_campaign = data.get("campaign", None)
+    keep_only_rooted = data.get("keep_only_rooted", False)
     hide_tocs_tags = data.get("hide_toc_tags", [])
     hide_backlinks_tags = data.get("hide_backlinks_tags", [])
 
@@ -638,7 +630,6 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     unnamed_files = data.get("unnamed_files", None)
     stub_files = data.get("stub_files", None)
     ignore_file = data.get("ignore_file", None)
-    skip_future_dated = data.get("skip_future_dated", True)
 
     ## Other
     abs_path_root = data.get("abs_path_root", "/")
@@ -674,7 +665,7 @@ if ignore_file:
 else:
     ignore_spec = None
 
-source_files = build_md_list(source_dir, ignore_spec)
+source_files = build_md_list(source_dir, keep_only_rooted, ignore_spec)
 metadata = {}
 linked_images = []
 all_images = []
