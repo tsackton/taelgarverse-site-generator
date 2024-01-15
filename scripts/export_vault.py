@@ -566,8 +566,18 @@ def build_md_list(path, ignore_spec=None):
                     fm["unlisted"] = True
                 
                 # check for future dated and campaign exclusions
-                if skip_future_dated and fm.get("activeYear", None):
-                    add_file = False if parse_date(target_date) < parse_date(fm["activeYear"]) else add_file
+                # get page year
+                if fm.get("activeYear", None):
+                    page_year = parse_date(fm["activeYear"])
+                elif fm.get("created", None):
+                    page_year = parse_date(fm["created"])
+                elif fm.get("born", None):
+                    page_year = parse_date(fm["born"])
+                else:
+                    page_year = None
+
+                if skip_future_dated and page_year:
+                    add_file = False if parse_date(target_date) < page_year else add_file
                 if fm.get("excludePublish", None):
                     campaign_exclusion = fm["excludePublish"] if isinstance(fm["excludePublish"], list) else list(fm["excludePublish"])
                     if "all" in campaign_exclusion:
