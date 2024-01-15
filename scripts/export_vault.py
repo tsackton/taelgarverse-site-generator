@@ -3,6 +3,7 @@ import yaml
 import json
 import re
 import os
+import pathspec
 from datetime import datetime
 from pathlib import Path
 from slugify import slugify
@@ -470,7 +471,13 @@ def count_relevant_lines(text):
     relevant_lines = [line for line in lines if not is_excluded(line)]
     return len(relevant_lines)
 
-def build_md_list(path, keep_only_rooted=False):
+def parse_ignore_file(file_path):
+    """ Parse the .gitignore file with pathspec """
+    with open(file_path, 'r') as file:
+        spec = pathspec.PathSpec.from_lines('gitwildmatch', file)
+    return spec
+
+def build_md_list(path, keep_only_rooted=False, ignore_spec=None):
     """
     Given a path, makes a dictionary of all the markdown files in the path.
     The dictionary has the original file name as the key, and a dict with two keys as the value:
@@ -486,6 +493,10 @@ def build_md_list(path, keep_only_rooted=False):
             
             # skip if directory
             if file.is_dir():
+                continue
+
+            # skip if in ignore list
+            if ignore_spec and ignore_spec.match_file(str(file.relative_to(path))):
                 continue
 
             # get the original file name, without md if present
@@ -608,6 +619,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     ## Files to keep / delete
     unnamed_files = data.get("unnamed_files", None)
     stub_files = data.get("stub_files", None)
+    ignore_file = data.get("ignore_file", None)
 
 ## SOURCE is input files
 ## OUTPUT is output directory
@@ -630,7 +642,13 @@ print("Copying CSS and other site extras")
 shutil.copytree(css_source_dir, Path(output_dir / css_dest_dir), dirs_exist_ok=True)
 shutil.copytree(site_img_source_dir, Path(output_dir / site_img_dest_dir), dirs_exist_ok=True)
 
-source_files = build_md_list(source_dir, keep_only_rooted)
+if ignore_file:
+    print("Processing ignore file " + ignore_file)
+    ignore_spec = parse_ignore_file(ignore_file)
+else:
+    ignore_spec = None
+
+source_files = build_md_list(source_dir, keep_only_rooted, ignore_spec)
 metadata = {}
 
 print("Processing files")
