@@ -400,7 +400,7 @@ def clean_inline_tags(s):
     def date_to_string(match):
         inline_tag = match.group(2)
         tag_value = match.group(3)
-        if inline_tag == "DR" or inline_tag == "DR_end"
+        if inline_tag == "DR" or inline_tag == "DR_end":
             parts = tag_value.split("-")
             if len(parts) > 1:
                 parts[1] = DR_MONTHS[int(parts[1])]

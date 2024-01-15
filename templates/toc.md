@@ -131,4 +131,4 @@
         - [Characters](people/pcs/great-war/heroes-of-the-great-war.md)
             - {glob: people/pcs/great-war/, exclude: heroes-of-the-great-war.md}
     - [Labyrinths of the Lost](campaigns/labyrinths-of-the-lost/labyrinths-of-the-lost.md)
-        - {glob: /campaigns/labyrinths-of-the-lost, exclude: labyrinths-of-the-lost.md}
+        - {glob: campaigns/labyrinths-of-the-lost, exclude: labyrinths-of-the-lost.md}
