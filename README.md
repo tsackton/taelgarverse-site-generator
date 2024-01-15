@@ -4,15 +4,16 @@ Taelgarverse is a website that is auto-generated from markdown files stored in a
 
 ## Basic Workflow
 
-We use a Obsidian-based Javascript code to prep a source directory for conversion, primarily to generate static, mkdocs-compliant versions of dynamic headers. We then use a Python hook to auto-generate mkdocs-compliant markdown from the now-static source directory into the mkdocs `docs/` directory. 
+We use a Obsidian-based Javascript code to prep a source directory for conversion, primarily to generate static, mkdocs-compliant versions of dynamic headers. We then use a Python script to auto-generate mkdocs-compliant markdown from the now-static source directory into the mkdocs `docs/` directory. 
 
 Assuming the `source` directory is submodule, the basic build protocol for **local testing** is:
 1. `git pull` from the source directory to get any updates to source material
 2. (optional) run `python scripts/prep_source_dir.py` to remove files that you want to remove *prior* to export proccessing in Obsidian.
 3. open the `source` directory as an Obsidian vault, and run the `prep_for_export` template to make dynamic pages static
-4. run `mkdocs serve` to build the website
+4. run `python path/to/this/repo export_vault.py` to build the website, *from the website base directory that contains your mkdocs.yml*
+5. run `mkdocs serve`
 
-How this will be converted to github actions for serving the website is TBD but will involve some changes (since the staticification of the source has to be done offline via Obsidian).
+Note that things that live in the `docs` directory, including extra CSS and site images like banners and logos, are copied by the `export_vault.py` script. See config below. Things that live *outside* the `docs` directory (`overrides`) are not mananged by `export_vault.py`. 
 
 ## Configuration
 
