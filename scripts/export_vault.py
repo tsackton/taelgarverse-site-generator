@@ -96,7 +96,7 @@ class MkDocsNavigationGenerator:
             unlisted = self.file_frontmatter.get(file_path.stem, {}).get('unlisted', False)
             if unlisted:
                 continue
-            markdown_list.append(f"{indent}- [{title}]({file_display_path})")
+            markdown_list.append(f"{indent}- [{title}]({file_display_path.as_posix()})")
 
         # Process subdirectories
         for subdir in sorted(subdirs, key=lambda x: x.name.lower()):
@@ -105,7 +105,7 @@ class MkDocsNavigationGenerator:
 
             if (self.source_dir / index_file).is_file() and index_file.stem in self.file_frontmatter:
                 title = self.file_frontmatter[index_file.stem].get('title', title_case(subdir.stem.replace("-", " ")))
-                markdown_list.append(f"{indent}- [{title}]({index_file})")
+                markdown_list.append(f"{indent}- [{title}]({index_file.as_posix()})")
                 exclude_files.append(index_file.name)
             else:
                 # title case subdir name
@@ -191,7 +191,9 @@ class WikiLinkReplacer:
         rel_link_url = ''
         # Walk through all files in docs directory to find a matching file
         if filename:
-            if filename in self.path_dict:
+            if filename in self.path_dict or filename.lower() in self.path_dict:
+                if filename.lower() in self.path_dict:
+                    filename = filename.lower()
                 alias = str(filename) if alias == "" else alias
                 if slugify_files:
                     filename = str(self.path_dict[filename]['file'])
@@ -268,6 +270,7 @@ class WikiLinkReplacer:
             else:
                 image_params = ""
             link = f'[{alias}]({rel_link_url}){image_params}'
+            linked_images.append(rel_link_url.replace("../", ""))
                                
         else:
             if filename:
@@ -441,6 +444,7 @@ def clean_code_blocks(s, template_dir, config, source_files, abs_path_root):
                         page_path = source_files[image_file_name]['file']
                     else:
                         page_path = source_files[image_file_name]['orig']
+                    linked_images.append(str(page_path))
                     template_content["image"] = abs_path_root + str(page_path.as_posix())
                 return(template_text.format(**template_content))
             else:
@@ -628,6 +632,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     resize_images = data.get("resize_images", True)
     max_height = data.get("max_height", 1600)
     max_width = data.get("max_width", 1600)
+    delete_unlinked_images = data.get("delete_unlinked_images", True)
 
 ## SOURCE is input files
 ## OUTPUT is output directory
@@ -658,18 +663,24 @@ else:
 
 source_files = build_md_list(source_dir, keep_only_rooted, ignore_spec)
 metadata = {}
+linked_images = []
+all_images = []
 
 print("Processing files")
 if resize_images:
     print("Resizing images with max width " + str(max_width) + " and max height " + str(max_height))
 
 for file_name in source_files:
-    # Construct new path
+
+    # Construct new path and add to image
     if slugify_files:
         new_file_path = output_dir / source_files[file_name]["file"]
     else:
         new_file_path = output_dir / source_files[file_name]["orig"]
-        
+    
+    if new_file_path.suffix in ['.png', '.jpg', '.jpeg', '.gif']:
+        all_images.append(str(new_file_path.relative_to(output_dir)))
+    
     # Copy files that won't be processed
     if not source_files[file_name]['process']:
         # just straight copy
@@ -704,9 +715,8 @@ for file_name in source_files:
         
     if clean_code_blocks:
         text = clean_code_blocks(text, codeblock_template_dir, data, source_files, abs_path_root)
-    if data.get("fix_links") :
+    if data.get("fix_links"):
         text = re.sub(WIKILINK_RE, WikiLinkReplacer(output_dir, page_path, source_files, slugify_files), text)
-
 
     ## clean up frontmatter ##
 
@@ -756,3 +766,10 @@ if literate_nav_source:
 
     with open(nav_path, 'w', -1, "utf8") as output_file:
         output_file.write('\n'.join(processed_template))
+
+# remove unused images
+
+if delete_unlinked_images:
+    for image in list(set(all_images) - set(linked_images)):
+        print("Deleting unused image " + image)
+        os.remove(Path(output_dir) / Path(image))
