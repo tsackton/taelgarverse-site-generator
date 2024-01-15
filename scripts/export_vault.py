@@ -270,7 +270,7 @@ class WikiLinkReplacer:
             else:
                 image_params = ""
             link = f'[{alias}]({rel_link_url}){image_params}'
-            linked_images.append(rel_link_url.replace("../", ""))
+            linked_images.append(rel_link_url.replace("../", "").replace("..\\", ""))
                                
         else:
             if filename:
@@ -687,7 +687,7 @@ for file_name in source_files:
     else:
         new_file_path = output_dir / source_files[file_name]["orig"]
     
-    if new_file_path.suffix in ['.png', '.jpg', '.jpeg', '.gif']:
+    if new_file_path.suffix in ['.png', '.jpg', '.jpeg', '.gif', ".heic"]:
         all_images.append(str(new_file_path.relative_to(output_dir)))
     
     # Copy files that won't be processed
