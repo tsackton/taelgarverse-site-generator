@@ -375,9 +375,18 @@ def parse_date(date_str):
     """
     Tries to parse the date string in various formats and returns a datetime object.
     """
+    # Split the date string into parts
+    parts = date_str.split('-')
+    
+    # Pad the year part with zeros if necessary
+    parts[0] = parts[0].zfill(4)
+    
+    # Rejoin the parts into a date string
+    padded_date_str = '-'.join(parts)
+
     for fmt in ['%Y', '%Y-%m', '%Y-%m-%d']:
         try:
-            return datetime.strptime(date_str, fmt)
+            return datetime.strptime(padded_date_str, fmt)
         except ValueError:
             continue
     raise ValueError(f"Date '{date_str}' is not in a recognized format")
@@ -568,11 +577,11 @@ def build_md_list(path, ignore_spec=None):
                 # check for future dated and campaign exclusions
                 # get page year
                 if fm.get("activeYear", None):
-                    page_year = parse_date(fm["activeYear"])
+                    page_year = parse_date(str(fm["activeYear"]).strip())
                 elif fm.get("created", None):
-                    page_year = parse_date(fm["created"])
+                    page_year = parse_date(str(fm["created"]).strip())
                 elif fm.get("born", None):
-                    page_year = parse_date(fm["born"])
+                    page_year = parse_date(str(fm["born"]).strip())
                 else:
                     page_year = None
 
