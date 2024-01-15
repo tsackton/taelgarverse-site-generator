@@ -67,6 +67,7 @@
         - {glob: groups/}
 - [Gazetteer](campaigns/player-s-guide.md)
     - [World of Taelgar](gazetteer/geography-of-taelgar.md)
+        - [World Map](gazetteer/gazetteer.md)
         - {glob: gazetteer, exclude: endless-ocean.md;green-sea.md;geography-of-taelgar.md;gazetteer.md}
         - [Endless Ocean](gazetteer/endless-ocean.md)
         - [Green Sea](gazetteer/green-sea.md)
@@ -126,4 +127,8 @@
         - Characters
             - {glob: people/pcs/mawar-confederacy}
         - {glob: campaigns/mawar-confederacy/, exclude: mawar-adventures.md}
-
+    - Great War
+        - [Characters](people/pcs/great-war/heroes-of-the-great-war.md)
+            - {glob: people/pcs/great-war/, exclude: heroes-of-the-great-war.md}
+    - [Labyrinths of the Lost](campaigns/labyrinths-of-the-lost/labyrinths-of-the-lost.md)
+        - {glob: /campaigns/labyrinths-of-the-lost, exclude: labyrinths-of-the-lost.md}

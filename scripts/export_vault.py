@@ -400,33 +400,33 @@ def clean_inline_tags(s):
     def date_to_string(match):
         inline_tag = match.group(2)
         tag_value = match.group(3)
-        if inline_tag == "DR":
-            year, month, day = tag_value.split("-")
-            if month:
-                month = DR_MONTHS[int(month)]
-            if year and month and day:
-                return(f'{month} {day}, {year} DR')
-            if year and month:
-                return(f'{month} {year} DR')
-            if year:
-                return(f'{year} DR')
+        if inline_tag == "DR" or inline_tag == "DR_end"
+            parts = tag_value.split("-")
+            if len(parts) > 1:
+                parts[1] = DR_MONTHS[int(parts[1])]
+            if len(parts) == 3:
+                return(f'{parts[1]} {parts[2]}, {parts[0]} DR')
+            if len(parts) == 2:
+                return(f'{parts[1]} {parts[0]} DR')
+            if len(parts) == 1:
+                return(f'{parts[0]} DR')
         return inline_tag + " " + tag_value
     
-    pattern = r'(\((\w+)::\s+(.\S+)\s*\))'
+    pattern = r'(\((\w+)::\s*(\S+)\s*\))'
     return re.sub(pattern, date_to_string, s, flags=re.DOTALL)
 
 def clean_code_blocks(s, template_dir, config, source_files):
     def codeblock_cleaner(match):
         if match.group(2):
             # code block
-            codeblock_type, codeblock_content = match.group(2).partition('\n')
-            codeblock_template = Path(template_dir) / Path(codeblock_type + ".html")
+            codeblock_type, sep, codeblock_content = match.group(2).partition('\n')
+            codeblock_template = Path(template_dir) / Path(codeblock_type.strip() + ".html")
             if codeblock_template.is_file():
                 template_text = open(codeblock_template, 'r').read()
                 template_content = yaml.safe_load(codeblock_content)
-                if codeblock_type == "leaflet":
+                if codeblock_type.strip() == "leaflet":
                     ## fix image path
-                    image_file_name = template_content["image"]
+                    image_file_name = str(template_content["image"][0]).replace("[", "").replace("]", "").replace('\'', "")
                     if config.get("slugify", True):
                         page_path = source_files[image_file_name]['file']
                     else:
@@ -555,14 +555,12 @@ if clean_build_dir:
 output_dir.mkdir(parents=True, exist_ok=True)
 
 if home_source:
-    print("Copying " + home_source + " to " + str(source_dir) + home_dest)
-    shutil.copy(Path(home_source), source_dir / Path(home_dest))
+    print("Copying " + home_source + " to " + str(source_dir) + "/" + home_dest)
+    shutil.copy(Path(home_source), Path(source_dir / Path(home_dest)))
 
 print("Copying CSS and other site extras")
-css_dest_dir.mkdir(parents=True, exist_ok=True)
-site_img_dest_dir.mkdir(parents=True, exist_ok=True)
-shutil.copytree(css_source_dir, source_dir / css_dest_dir, dirs_exist_ok=True)
-shutil.copytree(site_img_source_dir, source_dir / site_img_dest_dir, dirs_exist_ok=True)
+shutil.copytree(css_source_dir, Path(output_dir / css_dest_dir), dirs_exist_ok=True)
+shutil.copytree(site_img_source_dir, Path(output_dir / site_img_dest_dir), dirs_exist_ok=True)
 
 source_files = build_md_list(source_dir, keep_only_rooted)
 metadata = {}
