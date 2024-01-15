@@ -479,6 +479,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     target_campaign = data.get("campaign", None)
     keep_only_rooted = data.get("keep_only_rooted", False)
     hide_tocs_tags = data.get("hide_toc_tags", [])
+    hide_backlinks_tags = data.get("hide_backlinks_tags", [])
     exclude_tildes = data.get("exclude_tildes", True)
 
 ## SOURCE is input files
@@ -556,6 +557,14 @@ for file_name in source_files:
         if any(tag in clean_tags for tag in hide_tocs_tags):
             fm["hide_toc"] = True
 
+    if tags and hide_backlinks_tags:
+        clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
+        if any(tag in clean_tags for tag in hide_tocs_tags):
+            fm["hide_backlinks"] = True
+
+    if fm.get("hide_backlinks", False) and fm.get("hide_toc", False):
+        fm["hide"] = ["toc"]
+        
     basename = Path(new_file_path).stem
 
     if exclude_tildes and file_name.startswith("~"):

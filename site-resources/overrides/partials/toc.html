@@ -22,7 +22,7 @@
   {% endif %}
 </nav>
 {% endif %}
-{% if backlinks %}
+{% if backlinks and not page.meta.hide_backlinks %}
 <nav class="md-nav md-nav--secondary" aria-label="Backlinks" style="{% if toc %}margin-top: 1em;{% endif %}">
   <label class="md-nav__title" for="__backlinks">
     <span class="md-nav__icon md-icon"></span>
