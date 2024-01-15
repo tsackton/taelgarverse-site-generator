@@ -660,6 +660,8 @@ source_files = build_md_list(source_dir, keep_only_rooted, ignore_spec)
 metadata = {}
 
 print("Processing files")
+if resize_images:
+    print("Resizing images with max width " + str(max_width) + " and max height " + str(max_height))
 
 for file_name in source_files:
     # Construct new path
@@ -673,7 +675,7 @@ for file_name in source_files:
         # just straight copy
         new_file_path.parent.mkdir(parents=True, exist_ok=True)
         # special processing for image files
-        if source_files[file_name]['orig'].suffix in ['.png', '.jpg', '.jpeg', '.gif', '.heic'] and resize_images and all(substring not in source_files[file_name]['orig'].stem for substring in ["fullsize", "map", "region"]):
+        if source_files[file_name]['orig'].suffix in ['.png', '.jpg', '.jpeg', '.gif'] and resize_images and all(substring not in source_files[file_name]['orig'].stem for substring in ["fullsize", "map", "region"]):
             # resize images
             img = Image.open((source_dir / source_files[file_name]["orig"]))
             width, height = img.size
