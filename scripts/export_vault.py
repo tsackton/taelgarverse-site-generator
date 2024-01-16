@@ -647,6 +647,7 @@ with open((configfile), 'r', 2048, "utf-8") as f:
     target_date = data.get("export_date", None)
     target_campaign = data.get("campaign", None)
     hide_tocs_tags = data.get("hide_toc_tags", [])
+    hide_nav_tags = data.get("hide_nav_tags", [])
     hide_backlinks_tags = data.get("hide_backlinks_tags", [])
 
     ## Files to keep / delete
@@ -765,12 +766,20 @@ for file_name in source_files:
     # exclude backlinks from selected tags #
     if tags and hide_backlinks_tags:
         clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
-        if any(tag in clean_tags for tag in hide_tocs_tags):
+        if any(tag in clean_tags for tag in hide_backlinks_tags):
             fm["hide_backlinks"] = True
+
+    hide_nav = False
+    if tags and hide_nav_tags:
+        clean_tags = list(set([piece for tag in tags for piece in tag.split("/")]))
+        if any(tag in clean_tags for tag in hide_nav_tags):
+            hide_nav = True
 
     # if both toc and backlink are hidden, hide entire toc nav #
     if fm.get("hide_backlinks", False) and fm.get("hide_toc", False):
-        fm["hide"] = ["toc"]
+        fm["hide"] = ["toc", "navigation"] if hide_nav else ["toc"]
+    elif hide_nav:
+        fm["hide"] = ["navigation"]
 
     basename = Path(new_file_path).stem
     metadata[basename] = fm
