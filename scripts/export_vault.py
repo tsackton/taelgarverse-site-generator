@@ -402,14 +402,28 @@ def strip_date_content(s, input_date_str):
     def replace_func(match):
         # Extract the date from the comment
         comment_date_str = match.group(1)
+        # Check if the date ends with a letter
+        parse_code = "b"
+        if comment_date_str[-1].isalpha():
+            parse_code = comment_date_str[:-1].lower()
+            # Remove the letter
+            comment_date_str = comment_date_str[:-1]
         # Parse the comment date
         comment_date = parse_date(comment_date_str)
 
         # Compare the dates
-        if input_date < comment_date:
-            return ""  # Remove the text if input_date is before comment_date
+        if parse_code == "a":
+            if input_date <= comment_date:
+                return ""  # Remove the text if input_date is before comment_date
+            else:
+                return match.group(0)  # Keep the text otherwise
+        elif parse_code == "b":
+            if input_date >= comment_date:
+                return ""
+            else:
+                return match.group(0)  # Keep the text otherwise
         else:
-            return match.group(0)  # Keep the text otherwise
+            raise ValueError(f"Invalid parse code '{parse_code}' in comment '{match.group(0)}'")
 
     # Define the regular expression pattern
     pattern = r'%%\^Date:(.*?)%%(.*?)%%\^End%%'
