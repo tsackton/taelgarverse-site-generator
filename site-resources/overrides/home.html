@@ -27,7 +27,7 @@
         max-width: unset !important;
         margin: 0 !important;
         padding-top: .0rem !important;
-        height: 40vh !important;
+        height: 70vh !important;
         min-height: 300px !important;
         /* background: linear-gradient(to bottom, var(--md-primary-fg-color), {{ config.home_gradient_hsla }} 99%, {{ config.home_gradient_hsla }} 99%); */
         /* This is used for the background gradient */
@@ -50,15 +50,23 @@
 
     .banner-row {
         height:100%;
-        background-color: rgba(0,0,0,0.5);
+        /* background-color: rgba(225, 247, 103, 0.493) */
         /* Should be uncommented for background image */
 
-        /* background: linear-gradient(to bottom, rgba(0,0,0,0.5), rgba(0,0,0,1) 99%, rgba(0,0,0,1) 99%); */
+        background: linear-gradient(to bottom, #009485, rgba(0, 148, 133, 0.20), rgba(0, 148, 133, 0.10), rgba(0, 148, 133, 0));
         /* Should be uncommented for background image for neat gradient effect */
         
         display: flex;
         justify-content: center;
-        align-items: center;
+        align-items: end;
+    }
+
+    [data-md-color-scheme="slate"] .banner-row {
+        height:100%;
+        background: linear-gradient(to bottom, rgb(84, 109, 120), rgb(84, 109, 120, 0.20), rgb(84, 109, 120, 0.10), rgb(84, 109, 120, 0));
+        display: flex;
+        justify-content: center;
+        align-items: end;
     }
 
 </style>
@@ -75,13 +83,13 @@
 
                 <div class="col-8-24 banner-content">
                     <div class="banner-title md-typeset">
-                        <span class="home-tagline">{{ config.home_tagline }}</span><br/>
-                        {{ config.home_description }}
+                        <img src="assets/site-img/logo.png" alt="Logo" class="banner-logo" />
+                        <span class="home-tagline">{{ config.home_tagline }}</span>
                     </div>
 
                     <div class="row banner-buttons md-typeset">
                         
-                        <div class="col-6-24 banner-button">
+                        <div class="col-7-24 banner-button">
                             {%- if config.home_button1_name -%}
                             <a href="{{ config.home_button1_url }}" title="{{ config.home_button2_title }}" class="{{ config.home_button1_theme }}">
                                 {{ config.home_button1_name }}
@@ -89,7 +97,7 @@
                             {%- endif -%}
                         </div>
                         <div class="col-1-24 margin btn-margin"></div>
-                        <div class="col-6-24 banner-button">
+                        <div class="col-7-24 banner-button">
                             {%- if config.home_button2_name -%}
                             <a href="{{ config.home_button2_url }}" title="{{ config.home_button2_title }}" class="{{ config.home_button2_theme }}">
                                 {{ config.home_button2_name }}
@@ -97,14 +105,14 @@
                             {%- endif -%}
                         </div>                    
                         <div class="col-1-24 margin btn-margin"></div>
-                        <div class="col-6-24 banner-button">
+                        <div class="col-7-24 banner-button">
                             {%- if config.home_button3_name -%}
                             <a href="{{ config.home_button3_url }}" title="{{ config.home_button2_title }}" class="{{ config.home_button3_theme }}">
                                 {{ config.home_button3_name }}
                             </a>
                             {%- endif -%}
                         </div>
-                        <div class="col-4-24 margin"></div>
+                        <div class="col-1-24 margin"></div>
                     </div>
                 </div>
 

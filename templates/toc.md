@@ -113,7 +113,7 @@
                 - [Kaikkea](cosmology/gods/incorporeal-gods/kaikkea.md)
                 - [Sarqon](cosmology/gods/incorporeal-gods/sarqon.md)
             - [The Fox and Hunter](cosmology/gods/demigods/fox-and-hunter.md)
-- History
+- [History](history/history.md)
     - [Calendar Eras](time/calendar-eras.md)
     - {glob: history/}
     - People
