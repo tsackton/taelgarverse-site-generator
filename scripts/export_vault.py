@@ -353,7 +353,7 @@ def strip_comments(s):
     """
     return re.sub(r'%%.*?%%|%%.*', '', s, flags=re.DOTALL)
 
-def strip_campaign_content(s, text):
+def strip_campaign_content(s, target):
     """
     Given a string s, it finds strings of the format:
     %%^Campaign:text%%
@@ -366,7 +366,7 @@ def strip_campaign_content(s, text):
     def keep_or_remove(match):
         campaign_text = match.group(1)
         content = match.group(2)
-        return content if text.lower() == campaign_text.lower() else ""
+        return content if campaign_text.lower() in [i.lower() for i in target] else ""
 
     pattern = r'%%\^Campaign:(.*?)%%(.*?)%%\^End%%'
     return re.sub(pattern, keep_or_remove, s, flags=re.DOTALL | re.IGNORECASE)
@@ -605,7 +605,8 @@ def build_md_list(path, ignore_spec=None):
                     campaign_exclusion = fm["excludePublish"] if isinstance(fm["excludePublish"], list) else list(fm["excludePublish"])
                     if "all" in campaign_exclusion:
                         add_file = False
-                    if target_campaign.lower() in [item.lower() for item in campaign_exclusion]:
+                    # exclude if any campaign in campaign list is in exclusion list
+                    if any(comp in [i.lower() for i in target_campaign] for comp in [item.lower() for item in campaign_exclusion]):
                         add_file = False
 
             if add_file:
@@ -659,7 +660,11 @@ with open((configfile), 'r', 2048, "utf-8") as f:
 
     ## Procesing config
     target_date = data.get("export_date", None)
-    target_campaign = data.get("campaign", None)
+    target_campaign = data.get("campaign", [])
+    if isinstance(target_campaign, str) and "," in target_campaign:
+        target_campaign = target_campaign.split(",")
+    elif isinstance(target_campaign, str):
+        target_campaign = [target_campaign]
     hide_tocs_tags = data.get("hide_toc_tags", [])
     hide_nav_tags = data.get("hide_nav_tags", [])
     hide_backlinks_tags = data.get("hide_backlinks_tags", [])
