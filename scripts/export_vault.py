@@ -405,7 +405,7 @@ def strip_date_content(s, input_date_str):
         # Check if the date ends with a letter
         parse_code = "b"
         if comment_date_str[-1].isalpha():
-            parse_code = comment_date_str[:-1].lower()
+            parse_code = comment_date_str[-1].lower()
             # Remove the letter
             comment_date_str = comment_date_str[:-1]
         # Parse the comment date

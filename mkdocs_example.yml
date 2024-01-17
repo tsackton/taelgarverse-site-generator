@@ -1,7 +1,33 @@
 site_name: TaelgarVerse
+## Base path for backlinks ##
+base_path: /taelgarverse/
 theme:
   name: material
   custom_dir: overrides
+  palette:
+    # Palette toggle for automatic mode
+    - media: "(prefers-color-scheme)"
+      toggle:
+        icon: material/brightness-auto
+        name: Switch to light mode
+
+    # Palette toggle for light mode
+    - media: "(prefers-color-scheme: light)"
+      scheme: default 
+      primary: teal
+      accent: deep purple
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+
+    # Palette toggle for dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: blue grey
+      accent: cyan
+      toggle:
+        icon: material/brightness-4
+        name: Switch to system preference
   features: 
     - navigation.instant
     - navigation.tracking
@@ -12,8 +38,10 @@ theme:
   favicon: assets/site-img/logo.png
   logo: assets/site-img/logo.png
 extra_css:
-  - stylesheets/extra.css
   - stylesheets/leaflet.css
+  - stylesheets/homepage.css
+  - stylesheets/taelgarverse.css
+  - stylesheets/styling.css
 markdown_extensions:
   - md_in_html
   - footnotes
@@ -44,15 +72,15 @@ plugins:
       nav_file: toc.md
   - section-index
 
-## Base path for backlinks ##
-base_path: /taelgarverse/
-
 ### The following configures the buttons and image on the home page ###
 ### Modified from https://github.com/tylerdotrar/mkdocs-coverpage ###
 ### The icon and blurb parameters were used for the bottom buttons on the home page which we omit ###
 
 # Custom Homepage Elements
 home_cover_image: assets/site-img/banner-map.png # This path starts at your root mkdocs directory.
+home_cover_image_dark: assets/site-img/banner-map.png # This path starts at your root mkdocs directory.
+home_logo_image: assets/site-img/logo.png # This path starts at your root mkdocs directory.
+home_logo_image_dark: assets/site-img/logo.png # This path starts at your root mkdocs directory.
 home_tagline: TaelgarVerse
 home_description: The home of the world of Taelgar on the internet
 
