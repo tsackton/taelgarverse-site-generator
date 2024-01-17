@@ -10,9 +10,7 @@
 <!-- Stole this styling from the "up42-py" project (link: https://sdk.up42.com/) -->
 <!-- .tx-container Original Green Gradient: hsla(160deg,47%,55%,1) -->
 <style>
-    /* .md-tabs {
-        background-color: hsla(1deg,82%,20%,1);
-    } */
+    /* overwrite for home page only */
 
     .md-main {
         flex-grow: 0;
@@ -23,51 +21,11 @@
         height: 100%;
     }
 
-    .banner-row-container {
-        max-width: unset !important;
-        margin: 0 !important;
-        padding-top: .0rem !important;
-        height: 70vh !important;
-        min-height: 300px !important;
-        /* background: linear-gradient(to bottom, var(--md-primary-fg-color), {{ config.home_gradient_hsla }} 99%, {{ config.home_gradient_hsla }} 99%); */
-        /* This is used for the background gradient */
+    /*color of tab bar at top of page*/
 
-        /* background-image: url(img/bg08.jpg); */
-        background-image: url("{{ config.home_cover_image }}");
-        background-repeat: no-repeat;
-        background-attachment: fixed;
-        background-position: center center;
-        background-clip: border-box;
-        background-origin: padding-box;
-        -moz-background-size: cover;
-        background-size: cover;
-        /* This stuff is used for the background image */
-    }
-
-    @media (max-width: 1025px) {
-        .banner-row-container { background-attachment: scroll; }
-    }
-
-    .banner-row {
-        height:100%;
-        /* background-color: rgba(225, 247, 103, 0.493) */
-        /* Should be uncommented for background image */
-
-        background: linear-gradient(to bottom, #009485, rgba(0, 148, 133, 0.20), rgba(0, 148, 133, 0.10), rgba(0, 148, 133, 0));
-        /* Should be uncommented for background image for neat gradient effect */
-        
-        display: flex;
-        justify-content: center;
-        align-items: end;
-    }
-
-    [data-md-color-scheme="slate"] .banner-row {
-        height:100%;
-        background: linear-gradient(to bottom, rgb(84, 109, 120), rgb(84, 109, 120, 0.20), rgb(84, 109, 120, 0.10), rgb(84, 109, 120, 0));
-        display: flex;
-        justify-content: center;
-        align-items: end;
-    }
+    /* .md-tabs {
+        background-color: hsla(1deg,82%,20%,1);
+    } */
 
 </style>
 
@@ -83,7 +41,7 @@
 
                 <div class="col-8-24 banner-content">
                     <div class="banner-title md-typeset">
-                        <img src="assets/site-img/logo.png" alt="Logo" class="banner-logo" />
+                        <div class="banner-logo"></div>
                         <span class="home-tagline">{{ config.home_tagline }}</span>
                     </div>
 

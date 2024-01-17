@@ -1,3 +1,12 @@
+/* map container */
+
+.ext-map-container {
+	height: 600px;
+	max-width: 100%;
+	max-height: 100%;
+  }
+
+
 /* required styles */
 
 .leaflet-pane,
