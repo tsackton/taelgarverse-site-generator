@@ -32,6 +32,7 @@
 
 .col-0-24 { width:0%; display:none; }
 .col-1-24 { width:4.166667%; display:inline-block; }
+.col-1dot5-24 { width: 6.25%; display:inline-block; }
 .col-2-24 { width:8.333333%; display:inline-block; }
 .col-3-24 { width:12.5%; display:inline-block; }
 .col-4-24 { width:16.666667%; display:inline-block; }

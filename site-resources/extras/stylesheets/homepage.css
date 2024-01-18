@@ -3,18 +3,19 @@
 /* Home banner styles */
 
 /* logo image selection for light vs dark mode */
-
 /* change images for dark mode */
+/* paths are relative to this file */
 :root {
-  --banner-logo: url("{{ config.home_logo_image }}");
-  --home-cover-image: url("{{ config.home_cover_image }}");
+  --banner-logo: url("../assets/site-img/logo.png");
+  --home-cover-image: url("../assets/site-img/banner-map.png");
 }
 
 [data-md-color-scheme="slate"] {
-  --banner-logo: url("{{ config.home_logo_image_dark }}");
-  --home-cover-image: url("{{ config.home_cover_image_dark }}");
+  --banner-logo: url("../assets/site-img/logo.png");
+  --home-cover-image: url("../assets/site-img/banner-map.png");
 }
 
+/** CONTAINERS AND GRID **/
 /* sets up the container for the banner row and adds an image */
 
 .banner-row-container {
@@ -42,11 +43,12 @@
   .banner-row-container { background-attachment: scroll; }
 }
 
+/* Fill the container entirely */
 .banner-row {
-  height:100%;
+  height: 100%;
   display: flex;
-  justify-content: center;
-  align-items: end;
+  flex-direction: column;
+  justify-content: flex-end; /* Aligns .banner-content to the bottom */
 }
 
 .banner-content-col {
@@ -62,68 +64,75 @@
   align-items: flex-end;
 }
 
+/* Take up the bottom 70% of .banner-row */
 .banner-content {
-  height: 75%;
+  height: 70%;
   display: flex;
-  justify-content: center;
-  /* align-items: center; */
   flex-direction: column;
-}
-
-/* makes the title area into a button-like box, comment out for plain text */
-.banner-title.md-typeset {
-  padding: 10px 20px; /* Top/bottom and left/right padding */
-  border-radius: 10px; /* Rounded corners */
-  display: flex; /* Makes the element inline but allows padding and width */
-  text-align: center; /* Centers the text */
-  border: 2px solid transparent; /* Optional: border, can be set to a color if you like */
-  text-decoration: none; /* Removes underline from text if it's a link */
-  font-weight: bold; /* Makes the font bold */
-}
-
-/* logo display parameters */
-/* set display: none to remove logo display */
-.banner-title.md-typeset .banner-logo {
-  margin-right: 10px; /* Adds some space between the logo and the text */
-  height: auto; /* Maintains aspect ratio */
-  width: 25%/* Your desired width, e.g., 50px */;
-  background-image: var(--banner-logo); /* Use the variable here */
-  background-size: contain; /* Adjust this as needed */
-  background-repeat: no-repeat;
-  display: block; /* Adjust this as needed */
-}
-
-/* better logo/title display on small screens */
-@media (max-width: 470px) {
-  .banner-title.md-typeset .banner-logo {
-    margin-right: 5px;
-    width: 15%
-  }
-}
-
-/* font size of main text */
-.home-tagline {
-  font-size: 2.5em !important;
+  justify-content: center; /* Centers content vertically */
 }
 
 /* button configuration */
 .banner-buttons {
   display: flex;
-  justify-content: flex-start;
+  justify-content: center;
   align-items: center;
   flex-direction: row;
 }
 
-.banner-buttons .md-button {
-  margin-top: .5rem;
-  margin-right: .5rem;
-  border-radius: 5px;
-  transition: .2s ease-in-out;
-  /* width: 100%; */
-  
+/***** MAIN TAGLINE ****/
+
+/* makes the title area into a button-like box, comment out for plain text */
+.banner-title.md-typeset {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%; /* Ensure full width */
+  padding: 10px 20px;
+  border-radius: 10px;
+  border: 2px solid transparent;
+  box-sizing: border-box;
+
 }
 
-[data-md-color-scheme="slate"] .banner-buttons .md-button {
+/* logo display parameters */
+/* set display: none to remove logo display */
+.banner-logo {
+  /* Ensure the logo maintains aspect ratio */
+  background-image: var(--banner-logo); /* Use the variable here */
+  background-size: cover; /* Adjust this as needed */
+  background-repeat: no-repeat;
+  background-position: left;
+  width: 100px;
+  height: 100px;
+}
+/* font size of main text */
+/* Ensure that the home tagline does not push the logo off-center */
+.home-tagline {
+  flex-grow: 1;
+  padding: 10px 10px; /* Add padding to the tagline if needed */
+  font-size: clamp(1.75em, 3.5vw, calc(3em + 3.5vw));
+}
+
+@media (max-width: 700px) {
+  .banner-logo {
+    display: none;
+  }
+}
+
+/* Media query for very small screens to adjust padding */
+@media (max-width: 400px) {
+  .home-tagline {
+    padding: 5px 5px;
+  }
+  .banner-title {
+    padding-right: 5px;
+  }
+}
+
+/**** BUTTONS ****/
+
+.banner-buttons .md-button {
   margin-top: .5rem;
   margin-right: .5rem;
   border-radius: 5px;
@@ -143,42 +152,23 @@
 
 .banner-button {
   width: 100%;
-  max-width: 190px;
 }
 
 .banner-button .md-button {
   width: 100%;
-  max-width: 175px;
   text-align: center;
   padding: 0.25rem 0 !important;
 }
 
-.banner-img-container {
-  height: 75%;
-  display: flex;
-  /* justify-content: center; */
-  align-items: center;
-}
-
-.banner-img {
-  height: 100%;
-  max-height: 300px;
-  width: auto;
-}
-
-@media (max-width: 960px) {
+@media (max-width: 1025px) {
 
   .banner-content-col .margin {
     display: none;
     width: 0;
   }
-
   .banner-content {
-    width: 85%;
-    display: flex;
-    justify-content: center;
-    align-items: center;
     flex-direction: column;
+    width: unset;
   }
   .banner-buttons {
     flex-direction: column;
@@ -186,11 +176,9 @@
   }
   .banner-button {
     width: 100%;
-    max-width: unset;
   }
   .banner-button .md-button {
     width: 100%;
-    max-width: unset;
     text-align: center;
   }
   .banner-img-container {
